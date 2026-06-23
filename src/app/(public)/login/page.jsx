@@ -71,13 +71,13 @@ const LoginPage = () => {
                             {/* Logo */}
                             <Link
                                 href="/"
-                                className="inline-flex items-center gap-2"
+                                className="inline-flex items-center"
                             >
                                 <Image
                                     src="/assets/logo.png"
                                     alt="Logo"
-                                    width={40}
-                                    height={40}
+                                    width={50}
+                                    height={50}
                                     className="rounded-full"
                                 />
 

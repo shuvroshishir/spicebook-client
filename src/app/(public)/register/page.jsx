@@ -33,6 +33,11 @@ const RegisterPage = () => {
             password: user.password,
             name: user.name,
             image: user.image,
+            role: "user",
+            isBlocked: false,
+            isPremium: false,
+            createdAt: new Date(),
+            updatedAt: new Date()
         });
 
         if (data) {
@@ -53,7 +58,7 @@ const RegisterPage = () => {
 
 
     return (
-        <section className="bg-background py-6">
+        <section className="bg-background pt-6 pb-20">
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8max-w-5xl">
                 <div className="overflow-hidden rounded-[32px] border border-primary/10 bg-background shadow-xl shadow-primary/20 lg:grid lg:min-h-[80vh] lg:grid-cols-2">
 
@@ -76,13 +81,13 @@ const RegisterPage = () => {
                             {/* Logo */}
                             <Link
                                 href="/"
-                                className="inline-flex items-center gap-2"
+                                className="inline-flex items-center "
                             >
                                 <Image
                                     src="/assets/logo.png"
                                     alt="Logo"
-                                    width={40}
-                                    height={40}
+                                    width={50}
+                                    height={50}
                                     className="rounded-full"
                                 />
 

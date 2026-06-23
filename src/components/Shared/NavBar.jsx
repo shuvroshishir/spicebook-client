@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import {
+    Avatar,
     Button
 } from "@heroui/react";
 import {
@@ -12,6 +13,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import ThemeToggle from "./ThemeToggle";
+import { authClient } from "@/lib/auth-client";
+import toast from "react-hot-toast";
+import { IoLogOutOutline } from "react-icons/io5";
 
 // nav links
 const navItems = [
@@ -33,6 +37,28 @@ const navItems = [
 const NavBar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const pathname = usePathname();
+
+
+    // user session and signout functionality
+    const { data: session } = authClient.useSession();
+    const user = session?.user;
+
+    const router = useRouter();
+    const handleSignout = async () => {
+        await authClient.signOut({
+            fetchOptions: {
+                onSuccess: () => {
+                    toast.success("Logout successful");
+
+                    router.push("/");
+                },
+
+                onError: () => {
+                    toast.error("Failed to logout");
+                },
+            },
+        });
+    };
 
     return (
         <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
@@ -90,29 +116,50 @@ const NavBar = () => {
                         <ThemeToggle />
 
 
-                        {/* <Avatar
-                            size="sm"
-                            src="https://i.pravatar.cc/150?u=1"
-                        /> */}
+                        {/* User avater */}
+                        {user &&
+                            <div className="items-center gap-3 flex">
+                                <div className="flex items-center gap-2">
+                                    <div className="hidden sm:flex flex-col text-[12px] text-foreground text-right leading-4">
+                                        <p>{user?.name}</p>
+                                        <p className="text-primary">{user?.email}</p>
+                                    </div>
+                                    <Link href="/dashboard" className="p-1 border border-gray-400 rounded-full">
+                                        <Avatar size="sm" className="cursor-pointer">
+                                            <Avatar.Image referrerPolicy="no-referrer" alt={user?.name} src={user?.image} />
+                                            <Avatar.Fallback>{user?.name.charAt(0)}</Avatar.Fallback>
+                                        </Avatar>
+                                    </Link>
+                                </div>
+
+                                <Button
+                                    onClick={handleSignout}
+                                    variant="outline"
+                                    className=" hidden sm:block border-primary text-primary hover:bg-primary/10 transition-default">
+                                    Logout
+                                </Button>
+                            </div>
+                        }
 
 
                         {/* Auth Buttons */}
-                        <div className="hidden items-center gap-3 md:flex">
-                            <Link href="/login">
-                                <Button
-                                    variant="outline"
-                                    className="border-primary text-primary hover:bg-primary/10 transition-default"
-                                >
-                                    Login
-                                </Button>
-                            </Link>
+                        {!user &&
+                            <div className="hidden items-center gap-3 md:flex">
+                                <Link href="/login">
+                                    <Button
+                                        variant="outline"
+                                        className="border-primary text-primary hover:bg-primary/10 transition-default"
+                                    >
+                                        Login
+                                    </Button>
+                                </Link>
 
-                            <Link href="/register">
-                                <Button className="brand-gradient text-white shadow-brand hover:scale-105 transition-default">
-                                    Get Started
-                                </Button>
-                            </Link>
-                        </div>
+                                <Link href="/register">
+                                    <Button className="brand-gradient text-white shadow-brand hover:scale-105 transition-default">
+                                        Get Started
+                                    </Button>
+                                </Link>
+                            </div>}
 
                         <Button
                             isIconOnly
@@ -163,25 +210,36 @@ const NavBar = () => {
                         ))}
 
                         {/* Auth Buttons */}
-                        <div className="flex items-center gap-3 border-t pt-5">
-                            <Link href="/login">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="border-primary text-primary hover:bg-primary/10 transition-default"
-                                >
-                                    Login
-                                </Button>
-                            </Link>
+                        {user &&
+                            <Button
+                                onClick={handleSignout}
+                                variant="outline"
+                                className=" sm:hidden border-primary text-primary hover:bg-primary/10 transition-default">
+                                <IoLogOutOutline /> Logout
+                            </Button>}
 
-                            <Link href="/register">
-                                <Button
-                                    size="sm"
-                                    className="brand-gradient text-white shadow-brand hover:scale-105 transition-default">
-                                    Register
-                                </Button>
-                            </Link>
-                        </div>
+
+                        {/* Auth Buttons */}
+                        {!user &&
+                            <div className="flex items-center gap-3 border-t pt-5">
+                                <Link href="/login">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="border-primary text-primary hover:bg-primary/10 transition-default"
+                                    >
+                                        Login
+                                    </Button>
+                                </Link>
+
+                                <Link href="/register">
+                                    <Button
+                                        size="sm"
+                                        className="brand-gradient text-white shadow-brand hover:scale-105 transition-default">
+                                        Register
+                                    </Button>
+                                </Link>
+                            </div>}
                     </ul>
                 </div>
 
