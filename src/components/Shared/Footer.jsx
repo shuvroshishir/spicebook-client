@@ -27,7 +27,7 @@ const Footer = () => {
 
                         <Link
                             href="/"
-                            className="flex items-center gap-3"
+                            className="flex items-center "
                         >
                             <Image
                                 src="/assets/logo.png"
