@@ -56,7 +56,7 @@ const NavBar = () => {
                             />
 
                             <span className="text-md sm:text-xl font-bold">
-                                SpiceBook
+                                Spice Book
                             </span>
                         </Link>
                     </div>
@@ -105,7 +105,7 @@ const NavBar = () => {
 
                             <Link href="/register">
                                 <Button className="brand-gradient text-white shadow-brand hover:scale-105 transition-default">
-                                    Register
+                                    Get Started
                                 </Button>
                             </Link>
                         </div>

@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "SpiceBook - A Recipe Sharing Platform",
+  title: "SpiceBook — Recipe Sharing Platform",
   description: "SpiceBook is a recipe sharing platform where users can share and discover delicious recipes from around the world. Join our community and explore a variety of culinary delights!",
 };
 
