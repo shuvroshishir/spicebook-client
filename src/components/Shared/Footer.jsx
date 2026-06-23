@@ -186,7 +186,7 @@ const Footer = () => {
                                 className="w-full bg-transparent px-5 py-3 text-sm outline-none"
                             />
 
-                            <button className="bg-gradient px-5 text-white transition-all duration-300 hover:brightness-105">
+                            <button className="brand-gradient px-5 text-white transition-all duration-300 hover:brightness-105">
                                 <FaArrowRight size={18} />
                             </button>
 

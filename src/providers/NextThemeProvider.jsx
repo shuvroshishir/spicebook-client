@@ -2,7 +2,7 @@
 
 import { ThemeProvider } from "next-themes";
 
-const Providers = ({ children }) => {
+const NextThemeProvider = ({ children }) => {
     return (
         <ThemeProvider
             attribute="class"
@@ -14,4 +14,4 @@ const Providers = ({ children }) => {
     );
 };
 
-export default Providers;
+export default NextThemeProvider;

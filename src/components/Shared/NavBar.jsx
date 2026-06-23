@@ -11,6 +11,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import ThemeToggle from "./ThemeToggle";
 
 // nav links
 const navItems = [
@@ -85,6 +86,9 @@ const NavBar = () => {
                     {/* Right */}
 
                     <div className="flex items-center gap-3">
+                        {/* theme toggle button */}
+                        <ThemeToggle />
+
 
                         {/* <Avatar
                             size="sm"
