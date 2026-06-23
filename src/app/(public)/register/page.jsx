@@ -36,7 +36,7 @@ const RegisterPage = () => {
         });
 
         if (data) {
-            toast.success("Sign Up Successful");
+            toast.success("Registration Successful");
             router.push("/");
         }
 
