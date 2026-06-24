@@ -37,7 +37,7 @@ const ErrorPage = ({ error, reset }) => {
                         <Button
                             size="lg"
                             onPress={() => reset()}
-                            className="bg-gradient px-8 font-semibold text-white"
+                            className="brand-gradient px-8 font-semibold text-white"
                         >
                             <FaArrowRotateRight />
 

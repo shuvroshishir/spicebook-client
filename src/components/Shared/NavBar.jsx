@@ -61,7 +61,7 @@ const NavBar = () => {
     };
 
     return (
-        <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
+        <nav className="sticky top-0 z-50 border-b border-border bg-accent/80 backdrop-blur-xl">
 
             <div className="container">
 
@@ -135,8 +135,8 @@ const NavBar = () => {
                                 <Button
                                     onClick={handleSignout}
                                     variant="outline"
-                                    className=" hidden sm:block border-primary text-primary hover:bg-primary/10 transition-default">
-                                    Logout
+                                    className="hidden sm:flex items-center gap-1.5 border-primary text-primary hover:bg-primary/10 transition-default font-medium">
+                                    <IoLogOutOutline className="size-4" /> Logout
                                 </Button>
                             </div>
                         }
