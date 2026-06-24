@@ -211,12 +211,14 @@ const NavBar = () => {
 
                         {/* Auth Buttons */}
                         {user &&
-                            <Button
-                                onClick={handleSignout}
-                                variant="outline"
-                                className=" sm:hidden border-primary text-primary hover:bg-primary/10 transition-default">
-                                <IoLogOutOutline /> Logout
-                            </Button>}
+                            <div className="flex items-center gap-3 border-t pt-5">
+                                <Button
+                                    onClick={handleSignout}
+                                    variant="outline"
+                                    className=" sm:hidden border-primary text-primary hover:bg-primary/10 transition-default">
+                                    <IoLogOutOutline /> Logout
+                                </Button>
+                            </div>}
 
 
                         {/* Auth Buttons */}
