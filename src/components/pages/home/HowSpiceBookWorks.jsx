@@ -2,7 +2,7 @@
 
 import { ChevronDown } from "@gravity-ui/icons";
 import { Accordion } from "@heroui/react";
-import { FaBookOpen, FaHeart, FaUtensils } from "react-icons/fa";
+import { FaBookOpen, FaHeart, FaUtensils, FaInfoCircle } from "react-icons/fa";
 
 
 const HowSpiceBookWorks = () => {
@@ -96,12 +96,16 @@ const HowSpiceBookWorks = () => {
         <section className="section bg-background">
             <div className="container">
                 {/* Section Header */}
-                <div className="text-center">
-                    <h2 className="section-title text-foreground">
+                <div className="text-center mb-8">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/20 bg-primary/5 text-primary text-xs font-semibold uppercase tracking-wider mb-4 mx-auto">
+                        <FaInfoCircle className="size-3.5" />
+                        <span>Guide & FAQ</span>
+                    </div>
+                    <h2 className="section-title text-foreground mt-2">
                         How SpiceBook Works
                     </h2>
 
-                    <p className="section-description mx-auto">
+                    <p className="section-description mx-auto mt-2">
                         Discover, create, and share delicious recipes in just a few simple steps.
                     </p>
                 </div>
