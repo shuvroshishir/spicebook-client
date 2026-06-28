@@ -49,7 +49,7 @@ export default function FeaturedRecipes() {
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary/5 rounded-full blur-3xl pointer-events-none" />
 
       <div className="container mx-auto px-4 relative z-10">
-        
+
         {/* Section Header with Left/Right Arrows on top right */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
           <motion.div
@@ -171,8 +171,8 @@ export default function FeaturedRecipes() {
                   {/* CTA Button */}
                   <div className="mt-6">
                     <Link href={`/recipe/${recipe._id}`} className="block w-full">
-                      <span className="flex items-center justify-center gap-2 w-full py-3 bg-default-100 hover:bg-primary hover:text-white text-foreground font-semibold rounded-2xl transition-all duration-300 text-sm shadow-sm group-hover:shadow-md">
-                        View Full Recipe
+                      <span className="flex items-center justify-center gap-2 w-full py-3 border border-primary/30 bg-primary/5 hover:bg-primary text-primary hover:text-white font-semibold rounded-2xl transition-all duration-300 text-sm shadow-sm group-hover:shadow-md cursor-pointer">
+                        View Recipe Details
                       </span>
                     </Link>
                   </div>
