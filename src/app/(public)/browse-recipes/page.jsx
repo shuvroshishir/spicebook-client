@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { LuChevronLeft, LuChevronRight, LuCompass, LuImage } from "react-icons/lu";
 import RecipeCard from "@/components/pages/browse-recipes/Card";
+import Loading from "@/app/loading";
 
 const CATEGORIES = [
   "Breakfast",
@@ -126,28 +127,7 @@ export default function BrowseRecipesPage() {
 
         {/* Recipes Grid / Loading Skeletons */}
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(9)].map((_, idx) => (
-              <div
-                key={idx}
-                className="bg-card border border-border rounded-[2rem] overflow-hidden h-[450px] flex flex-col animate-pulse"
-              >
-                <div className="w-full h-44 bg-muted" />
-                <div className="p-5 flex-1 flex flex-col justify-between">
-                  <div className="space-y-2">
-                    <div className="w-3/4 h-6 bg-muted rounded-lg" />
-                    <div className="w-1/2 h-4 bg-muted rounded-md" />
-                    <div className="w-16 h-4 bg-muted rounded-full" />
-                  </div>
-                  <div className="pt-4 border-t border-border flex justify-between">
-                    <div className="w-24 h-6 bg-muted rounded-md" />
-                    <div className="w-12 h-6 bg-muted rounded-md" />
-                  </div>
-                  <div className="w-full h-11 bg-muted rounded-xl mt-4" />
-                </div>
-              </div>
-            ))}
-          </div>
+          <Loading />
         ) : recipes.length === 0 ? (
           <div className="text-center py-20 bg-muted/10 rounded-[2.5rem] border border-dashed border-border max-w-xl mx-auto">
             <LuCompass className="mx-auto size-14 text-muted-foreground mb-4 animate-bounce" />

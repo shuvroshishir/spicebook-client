@@ -35,7 +35,7 @@ export default function PopularRecipes() {
       <div className="absolute top-1/2 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
 
       <div className="container mx-auto px-4 relative z-10">
-        
+
         {/* Section Header */}
         <div className="max-w-2xl mb-12">
           <motion.div
@@ -93,11 +93,10 @@ export default function PopularRecipes() {
                   <div className="p-3 bg-card hover:bg-default-50 border border-border/40 hover:border-border/80 hover:shadow-sm rounded-2xl flex items-center gap-4 transition-all duration-300 cursor-pointer group transform hover:-translate-y-0.5">
                     {/* Rank Badge */}
                     <div
-                      className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center font-bold text-sm ${
-                        isTopRank
+                      className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center font-bold text-sm ${isTopRank
                           ? "bg-black dark:bg-default-800 text-white"
                           : "bg-default-100 text-default-500"
-                      }`}
+                        }`}
                     >
                       {rank}
                     </div>

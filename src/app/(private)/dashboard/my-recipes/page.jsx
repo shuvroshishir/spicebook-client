@@ -21,6 +21,7 @@ import {
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import Loading from "@/app/loading";
 
 const CATEGORIES = [
   "Breakfast",
@@ -303,9 +304,7 @@ export default function MyRecipesPage() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center py-20">
-          <Spinner size="lg" label="Fetching your recipes..." />
-        </div>
+        <Loading />
       ) : recipes.length === 0 ? (
         <div className="flex flex-col items-center justify-center text-center p-8 sm:p-12 border border-dashed border-border rounded-3xl bg-card/50 backdrop-blur-sm min-h-[400px]">
           <div className="size-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
