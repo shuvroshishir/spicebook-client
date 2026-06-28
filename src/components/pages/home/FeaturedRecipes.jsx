@@ -52,7 +52,13 @@ export default function FeaturedRecipes() {
         
         {/* Section Header with Left/Right Arrows on top right */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
-          <div className="max-w-2xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="max-w-2xl"
+          >
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/20 bg-primary/5 text-primary text-xs font-semibold uppercase tracking-wider mb-4">
               <LuChefHat className="size-3.5" />
               <span>Chef's Choice</span>
@@ -63,7 +69,7 @@ export default function FeaturedRecipes() {
             <p className="text-muted-foreground mt-2 text-base">
               Explore our hand-picked selection of gourmet, popular, and seasonal culinary masterpieces curated just for you.
             </p>
-          </div>
+          </motion.div>
 
           {/* Navigation Controls (Only show if not loading and has recipes) */}
           {!loading && recipes.length > 0 && (
@@ -122,11 +128,9 @@ export default function FeaturedRecipes() {
             className="flex gap-6 overflow-x-auto scroll-smooth pb-8 pt-2 px-1 -mx-4 md:mx-0 snap-x snap-mandatory scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
           >
             {recipes.map((recipe) => (
-              <motion.div
+              <div
                 key={recipe._id}
-                whileHover={{ y: -8 }}
-                transition={{ duration: 0.2 }}
-                className="bg-card hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 border border-border hover:border-primary/20 rounded-[2.5rem] overflow-hidden flex flex-col w-[330px] shrink-0 h-[460px] snap-start group relative"
+                className="bg-card hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-2 transition-all duration-300 border border-border hover:border-primary/20 rounded-[2.5rem] overflow-hidden flex flex-col w-[330px] shrink-0 h-[460px] snap-start group relative transform"
               >
                 {/* Recipe Image */}
                 <div className="relative h-56 w-full overflow-hidden bg-muted">
@@ -173,7 +177,7 @@ export default function FeaturedRecipes() {
                     </Link>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         )}
