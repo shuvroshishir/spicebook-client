@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { LuHeart, LuChevronRight } from "react-icons/lu";
+import { LuHeart, LuChevronRight, LuCrown } from "react-icons/lu";
 
 export default function RecipeCard({ recipe }) {
   const authorInitial = recipe.authorName ? recipe.authorName.charAt(0).toUpperCase() : "C";
@@ -23,6 +23,15 @@ export default function RecipeCard({ recipe }) {
             {recipe.category}
           </span>
         </div>
+        {/* Floating Premium Price Badge */}
+        {recipe.isPremiumRecipe === true && (
+          <div className="absolute top-4 right-4">
+            <span className="px-3 py-1 rounded-full text-xs font-black bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md border border-amber-400/30 flex items-center gap-1">
+              <LuCrown className="size-3 text-white animate-pulse" />
+              <span>${recipe.price ? recipe.price.toFixed(2) : "4.99"}</span>
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Card Body */}
@@ -50,11 +59,21 @@ export default function RecipeCard({ recipe }) {
         <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
           {/* Author */}
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-sm shrink-0">
-              {authorInitial}
+            <div className="relative">
+              <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-sm shrink-0">
+                {authorInitial}
+              </div>
+              {recipe.isAuthorPremium && (
+                <div className="absolute -top-1 -right-1 bg-amber-500 text-white rounded-full p-0.5" title="Premium Pro Chef">
+                  <LuCrown className="size-2 text-white" />
+                </div>
+              )}
             </div>
-            <span className="text-sm font-medium text-foreground truncate max-w-[120px]">
+            <span className="text-sm font-medium text-foreground truncate max-w-[120px] flex items-center gap-1">
               {recipe.authorName || "Anonymous"}
+              {recipe.isAuthorPremium && (
+                <LuCrown className="text-amber-500 size-3.5 shrink-0" title="Premium Pro Chef" />
+              )}
             </span>
           </div>
 

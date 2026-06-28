@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
-import { LuPlus, LuUpload, LuLoader } from "react-icons/lu";
+import { LuPlus, LuUpload, LuLoader, LuCrown, LuAlertTriangle, LuCheck } from "react-icons/lu";
 import { Button } from "@heroui/react";
 import { authClient } from "@/lib/auth-client";
 
@@ -40,6 +40,10 @@ const DIFFICULTIES = ["Easy", "Medium", "Hard"];
 
 export default function AddRecipePage() {
   const router = useRouter();
+
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
+
   const fileInputRef = useRef(null);
 
   // Form states
@@ -51,10 +55,83 @@ export default function AddRecipePage() {
   const [prepTime, setPrepTime] = useState("");
   const [ingredients, setIngredients] = useState("");
   const [instructions, setInstructions] = useState("");
+  const [isPremiumRecipe, setIsPremiumRecipe] = useState(false);
+  const [price, setPrice] = useState("");
 
-  // Loading states
+  // Loading and limit states
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [recipeCount, setRecipeCount] = useState(0);
+  const [loadingCount, setLoadingCount] = useState(true);
+  const [isUpgradingLoading, setIsUpgradingLoading] = useState(false);
+
+  // Fetch current user recipe count
+  useEffect(() => {
+    const checkLimit = async () => {
+      if (!user) return;
+      try {
+        const tokenResult = await authClient.token();
+        const token = tokenResult?.data?.token;
+        const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
+        const response = await fetch(`${serverUrl}/recipes/my`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setRecipeCount(data.length || 0);
+        }
+      } catch (error) {
+        console.error("Error checking recipe limit:", error);
+      } finally {
+        setLoadingCount(false);
+      }
+    };
+    checkLimit();
+  }, [user]);
+
+  // Stripe Premium upgrade handler
+  const handleUpgradeToPremium = async () => {
+    setIsUpgradingLoading(true);
+    try {
+      const tokenResult = await authClient.token();
+      const token = tokenResult?.data?.token;
+      if (!token) {
+        toast.error("Please login to upgrade your account.");
+        return;
+      }
+
+      const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
+      const response = await fetch(`${serverUrl}/create-checkout-session/premium`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          redirectPath: "/dashboard/add-recipe"
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Failed to initiate premium checkout");
+      }
+
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("Stripe checkout URL missing");
+      }
+    } catch (error) {
+      console.error("Upgrade error:", error);
+      toast.error(error.message || "Failed to start checkout process");
+    } finally {
+      setIsUpgradingLoading(false);
+    }
+  };
 
   // Trigger file upload selector
   const handleUploadClick = () => {
@@ -111,6 +188,11 @@ export default function AddRecipePage() {
       return;
     }
 
+    if (isPremiumRecipe && (!price || parseFloat(price) <= 0)) {
+      toast.error("Please enter a valid price for your premium recipe.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     // Format ingredients and instructions into arrays by line
@@ -133,6 +215,8 @@ export default function AddRecipePage() {
       preparationTime: prepTime,
       ingredients: ingredientsArray,
       instructions: instructionsArray,
+      isPremiumRecipe,
+      price: isPremiumRecipe ? parseFloat(price) : 0
     };
 
     try {
@@ -165,6 +249,8 @@ export default function AddRecipePage() {
       setPrepTime("");
       setIngredients("");
       setInstructions("");
+      setIsPremiumRecipe(false);
+      setPrice("");
 
       // Redirect to recipes listings page
       router.push("/dashboard/my-recipes");
@@ -175,6 +261,79 @@ export default function AddRecipePage() {
       setIsSubmitting(false);
     }
   };
+
+
+  if (loadingCount && user && !user.isPremium) {
+    return (
+      <div className="min-h-[calc(100vh-4rem)] bg-background flex flex-col items-center justify-center space-y-4">
+        <LuLoader className="size-12 animate-spin text-primary" />
+        <p className="text-muted-foreground text-sm">Checking account status...</p>
+      </div>
+    );
+  }
+
+  if (user && !user.isPremium && recipeCount >= 2) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="p-4 sm:p-6 lg:p-8 max-w-xl mx-auto text-center my-12"
+      >
+        <div className="bg-card border border-border rounded-[2.5rem] p-8 sm:p-10 shadow-xl space-y-6">
+          <div className="bg-amber-500/10 border border-amber-500/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto text-amber-500">
+            <LuCrown className="size-8 animate-pulse" />
+          </div>
+          
+          <div className="space-y-2">
+            <h2 className="text-2xl font-black text-foreground tracking-tight">Recipe Limit Reached</h2>
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              Standard accounts are limited to <span className="font-semibold text-foreground">2 recipes</span>. You currently have {recipeCount} recipes published.
+            </p>
+          </div>
+
+          <div className="bg-default-50 border border-border rounded-2xl p-4 text-left space-y-3">
+            <h4 className="font-bold text-xs uppercase tracking-wider text-foreground">Unlock SpiceBook Premium:</h4>
+            <ul className="space-y-2 text-xs text-muted-foreground">
+              <li className="flex items-center gap-2">
+                <LuCheck className="text-amber-500 size-4 shrink-0" />
+                <span>Unlimited recipe uploads (lifetime)</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <LuCheck className="text-amber-500 size-4 shrink-0" />
+                <span>Exclusive premium chef profile badge</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <LuCheck className="text-amber-500 size-4 shrink-0" />
+                <span>Access to all locked/premium recipes</span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            <Button
+              onClick={() => router.push("/dashboard")}
+              variant="flat"
+              className="flex-1 font-semibold rounded-xl border border-border h-11"
+            >
+              Back to Overview
+            </Button>
+            <Button
+              onClick={handleUpgradeToPremium}
+              disabled={isUpgradingLoading}
+              className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-extrabold shadow-md hover:opacity-90 rounded-xl h-11"
+            >
+              {isUpgradingLoading ? (
+                <LuLoader className="size-5 animate-spin" />
+              ) : (
+                "Upgrade for $9.99"
+              )}
+            </Button>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -387,6 +546,57 @@ export default function AddRecipePage() {
               onChange={(e) => setInstructions(e.target.value)}
               className="w-full p-4 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-default"
             />
+          </div>
+
+          {/* Premium Recipe Checkbox / Pricing */}
+          <div className="p-5 rounded-2xl border border-border bg-default-50/50 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <label className="text-sm font-bold text-foreground flex items-center gap-1.5 cursor-pointer select-none" htmlFor="premium-recipe-checkbox">
+                  <LuCrown className="text-amber-500 size-4.5" />
+                  <span>Make this a Premium Recipe</span>
+                </label>
+                <p className="text-xs text-muted-foreground">
+                  Users will need to buy this specific recipe using Stripe to unlock its details.
+                </p>
+              </div>
+              <input
+                id="premium-recipe-checkbox"
+                type="checkbox"
+                checked={isPremiumRecipe}
+                onChange={(e) => {
+                  setIsPremiumRecipe(e.target.checked);
+                  if (!e.target.checked) setPrice("");
+                }}
+                className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary/25 cursor-pointer accent-primary"
+              />
+            </div>
+
+            {isPremiumRecipe && (
+              <div className="space-y-2 pt-2 border-t border-dashed border-border/80">
+                <label className="text-sm font-semibold text-foreground flex items-center gap-1">
+                  Recipe Price (USD) <span className="text-primary">*</span>
+                </label>
+                <div className="relative rounded-xl shadow-xs">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span className="text-muted-foreground text-sm font-semibold">$</span>
+                  </div>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0.50"
+                    placeholder="4.99"
+                    required={isPremiumRecipe}
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    className="w-full h-11 pl-7 pr-4 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-default font-semibold"
+                  />
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Minimum recommended price is $0.50.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Submit Button */}

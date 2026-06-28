@@ -16,6 +16,7 @@ import ThemeToggle from "./ThemeToggle";
 import { authClient } from "@/lib/auth-client";
 import toast from "react-hot-toast";
 import { IoLogOutOutline } from "react-icons/io5";
+import { LuCrown } from "react-icons/lu";
 
 // nav links
 const navItems = [
@@ -121,15 +122,36 @@ const NavBar = () => {
                             <div className="items-center gap-3 flex">
                                 <div className="flex items-center gap-2">
                                     <div className="hidden sm:flex flex-col text-[12px] text-foreground text-right leading-4">
-                                        <p>{user?.name}</p>
+                                        <p className="flex items-center justify-end gap-1 font-bold">
+                                            {user?.name}
+                                            {user?.isPremium && (
+                                                <LuCrown className="text-amber-500 size-3.5 shrink-0 animate-pulse" title="Premium Pro Member" />
+                                            )}
+                                        </p>
                                         <p className="text-primary">{user?.email}</p>
                                     </div>
-                                    <Link href="/dashboard/profile" className="p-1 border border-gray-400 rounded-full">
-                                        <Avatar size="sm" className="cursor-pointer">
-                                            <Avatar.Image referrerPolicy="no-referrer" alt={user?.name} src={user?.image} />
-                                            <Avatar.Fallback>{user?.name.charAt(0)}</Avatar.Fallback>
-                                        </Avatar>
-                                    </Link>
+                                    {user?.isPremium ? (
+                                        <Link href="/dashboard/profile" className="relative group block rounded-full transition-all duration-300 hover:scale-105">
+                                            <div className="p-[2px] rounded-full bg-gradient-to-tr from-amber-500 via-orange-400 to-yellow-500 shadow-md shadow-amber-500/20 group-hover:shadow-amber-500/40 transition-all duration-300">
+                                                <div className="p-[2px] bg-accent rounded-full">
+                                                    <Avatar size="sm" className="cursor-pointer">
+                                                        <Avatar.Image referrerPolicy="no-referrer" alt={user?.name} src={user?.image} />
+                                                        <Avatar.Fallback>{user?.name.charAt(0)}</Avatar.Fallback>
+                                                    </Avatar>
+                                                </div>
+                                            </div>
+                                            <div className="absolute -top-1 -right-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full p-0.5 border border-accent shadow-sm" title="Premium Pro Member">
+                                                <LuCrown className="size-2.5 text-white" />
+                                            </div>
+                                        </Link>
+                                    ) : (
+                                        <Link href="/dashboard/profile" className="p-1 border border-gray-400 hover:border-gray-600 rounded-full block transition-all duration-300 hover:scale-105">
+                                            <Avatar size="sm" className="cursor-pointer">
+                                                <Avatar.Image referrerPolicy="no-referrer" alt={user?.name} src={user?.image} />
+                                                <Avatar.Fallback>{user?.name.charAt(0)}</Avatar.Fallback>
+                                            </Avatar>
+                                        </Link>
+                                    )}
                                 </div>
 
                                 <Button

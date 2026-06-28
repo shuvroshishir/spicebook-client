@@ -16,7 +16,8 @@ import {
   LuChevronLeft,
   LuShoppingBag,
   LuLoader,
-  LuCheck
+  LuCheck,
+  LuCrown
 } from "react-icons/lu";
 
 export default function RecipeDetailsPage({ params }) {
@@ -216,7 +217,8 @@ export default function RecipeDetailsPage({ params }) {
   }
 
   const isAuthor = user && (user.email === recipe.authorEmail || user.id === recipe.authorId);
-  const isUnlocked = isAuthor || recipe.hasPurchased;
+  console.log("recipe client details:", { isPremiumRecipe: recipe.isPremiumRecipe, isAuthor, hasPurchased: recipe.hasPurchased });
+  const isUnlocked = recipe.isPremiumRecipe !== true || isAuthor || recipe.hasPurchased;
 
   const ingredientsList = Array.isArray(recipe.ingredients)
     ? recipe.ingredients
@@ -283,13 +285,23 @@ export default function RecipeDetailsPage({ params }) {
               {/* Author and stats card */}
               <div className="p-6 rounded-3xl bg-card border border-border/80 flex items-center justify-between shadow-sm mb-6">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-lg">
-                    {recipe.authorName ? recipe.authorName.charAt(0).toUpperCase() : "A"}
+                  <div className="relative">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-lg">
+                      {recipe.authorName ? recipe.authorName.charAt(0).toUpperCase() : "A"}
+                    </div>
+                    {recipe.isAuthorPremium && (
+                      <div className="absolute -top-1 -right-1 bg-amber-500 text-white rounded-full p-0.5" title="Premium Pro Chef">
+                        <LuCrown className="size-3 text-white" />
+                      </div>
+                    )}
                   </div>
                   <div>
                     <span className="text-xs text-muted-foreground block">Created By</span>
-                    <span className="text-sm font-bold text-foreground truncate max-w-[200px] block">
+                    <span className="text-sm font-bold text-foreground truncate max-w-[200px] flex items-center gap-1">
                       {recipe.authorName || "Anonymous"}
+                      {recipe.isAuthorPremium && (
+                        <LuCrown className="text-amber-500 size-4 shrink-0" title="Premium Pro Chef" />
+                      )}
                     </span>
                   </div>
                 </div>
@@ -358,7 +370,7 @@ export default function RecipeDetailsPage({ params }) {
               </div>
 
               {/* Purchase CTA Widget */}
-              {!isAuthor && (
+              {!isAuthor && recipe.isPremiumRecipe === true && (
                 <div className="p-5 rounded-3xl bg-card border border-border/80 shadow-md">
                   {isUnlocked ? (
                     <div className="flex items-center gap-3 text-emerald-600 font-semibold bg-emerald-500/10 p-3.5 rounded-2xl border border-emerald-500/20">
@@ -369,7 +381,9 @@ export default function RecipeDetailsPage({ params }) {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div>
                         <span className="text-xs text-muted-foreground block">Premium Recipe Pricing</span>
-                        <span className="text-2xl font-extrabold text-foreground">$4.99</span>
+                        <span className="text-2xl font-extrabold text-foreground">
+                          ${recipe.price ? recipe.price.toFixed(2) : "4.99"}
+                        </span>
                       </div>
                       <button
                         onClick={handlePurchase}

@@ -11,13 +11,22 @@ import {
   LuArrowRight, 
   LuPlus, 
   LuCompass, 
-  LuSettings 
+  LuSettings,
+  LuCrown,
+  LuLoader,
+  LuCheck
 } from 'react-icons/lu';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 
 export default function DashboardPage() {
   const { data: session } = authClient.useSession();
   const user = session?.user;
+  const router = useRouter();
+
+  const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
+  const [isUpgradingLoading, setIsUpgradingLoading] = useState(false);
 
   const [stats, setStats] = useState({
     publishedRecipes: 0,
@@ -51,6 +60,48 @@ export default function DashboardPage() {
       fetchStats();
     }
   }, [user]);
+
+  // Stripe Premium upgrade handler
+  const handleUpgradeToPremium = async () => {
+    setIsUpgradingLoading(true);
+    try {
+      const tokenResult = await authClient.token();
+      const token = tokenResult?.data?.token;
+      if (!token) {
+        toast.error("Please login to upgrade your account.");
+        return;
+      }
+
+      const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
+      const response = await fetch(`${serverUrl}/create-checkout-session/premium`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          redirectPath: "/dashboard" // success redirect page context
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Failed to initiate premium checkout");
+      }
+
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("Stripe checkout URL missing");
+      }
+    } catch (error) {
+      console.error("Upgrade error:", error);
+      toast.error(error.message || "Failed to start checkout process");
+    } finally {
+      setIsUpgradingLoading(false);
+    }
+  };
 
   // Framer Motion animation variants
   const containerVariants = {
@@ -93,19 +144,29 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <Link href="/dashboard/upgrade">
+        {/* Upgrade / Member Badge */}
+        {user?.isPremium ? (
+          <motion.div
+            variants={itemVariants}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-sm font-extrabold uppercase tracking-wider shadow-sm"
+          >
+            <LuCrown className="size-5 animate-pulse text-amber-500" />
+            Premium Pro Member
+          </motion.div>
+        ) : (
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
             <Button
+              onClick={() => setIsUpgradeOpen(true)}
               variant="outline"
               className="border-border text-foreground hover:bg-default-100 rounded-xl px-5 py-2.5 font-medium text-sm flex items-center gap-1.5 transition-default"
             >
               Upgrade to Pro <LuArrowRight className="size-4" />
             </Button>
-          </Link>
-        </motion.div>
+          </motion.div>
+        )}
       </motion.div>
 
       {/* Stats Grid */}
@@ -197,30 +258,44 @@ export default function DashboardPage() {
         variants={itemVariants}
       >
         <div className="flex items-start gap-4">
-          <div className="mt-1.5 flex h-2.5 w-2.5 shrink-0 rounded-full bg-foreground animate-pulse" />
+          <div className={`mt-1.5 flex h-2.5 w-2.5 shrink-0 rounded-full animate-pulse ${user?.isPremium ? "bg-amber-500" : "bg-foreground"}`} />
           <div className="space-y-1">
             <h4 className="font-extrabold text-foreground text-base sm:text-lg flex items-center gap-2">
-              Storage Limit: {stats.publishedRecipes}/2 Recipes
+              {user?.isPremium ? (
+                <>
+                  Storage Limit: Unlimited Recipes
+                  <span className="inline-flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full font-extrabold">
+                    PRO
+                  </span>
+                </>
+              ) : (
+                `Storage Limit: ${stats.publishedRecipes}/2 Recipes`
+              )}
             </h4>
             <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed">
-              Basic accounts are limited to 2 recipes. Upgrade to unlock unlimited storage.
+              {user?.isPremium ? (
+                "You have lifetime access to SpiceBook Premium. Upload as many recipes as you'd like without limit."
+              ) : (
+                "Basic accounts are limited to 2 recipes. Upgrade to unlock unlimited storage."
+              )}
             </p>
           </div>
         </div>
 
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className="shrink-0"
-        >
-          <Link href="/dashboard/upgrade">
+        {!user?.isPremium && (
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="shrink-0"
+          >
             <Button
-              className="w-full md:w-auto bg-foreground text-background font-bold text-sm px-6 py-3.5 rounded-2xl transition-all shadow-sm hover:opacity-90"
+              onClick={() => setIsUpgradeOpen(true)}
+              className="w-full md:w-auto bg-gradient-to-r from-amber-500 to-orange-500 text-white font-extrabold text-sm px-6 py-3.5 rounded-2xl transition-all shadow-sm hover:opacity-90 animate-pulse"
             >
               Upgrade Account
             </Button>
-          </Link>
-        </motion.div>
+          </motion.div>
+        )}
       </motion.div>
 
       {/* Quick Actions */}
@@ -297,6 +372,74 @@ export default function DashboardPage() {
           </motion.div>
         </div>
       </motion.div>
+
+      {/* Upgrade to Premium Details Modal */}
+      {isUpgradeOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-card border border-border w-full max-w-md rounded-3xl overflow-hidden shadow-2xl">
+            {/* Modal Header with golden gradient */}
+            <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-6 text-white text-center relative">
+              <LuCrown className="size-12 mx-auto mb-2 animate-bounce" />
+              <h3 className="text-2xl font-black tracking-tight">SpiceBook Premium</h3>
+              <p className="text-white/80 text-xs mt-1">Unlock the ultimate culinary experience</p>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Price Details */}
+              <div className="text-center bg-default-50 border border-border rounded-2xl py-4">
+                <span className="text-muted-foreground text-xs uppercase tracking-wider font-bold block">One-Time Payment</span>
+                <span className="text-4xl font-extrabold text-foreground tracking-tight">$9.99</span>
+                <span className="text-muted-foreground text-xs block mt-0.5">Lifetime Access • No Subscriptions</span>
+              </div>
+
+              {/* Features List */}
+              <div className="space-y-3.5">
+                <h4 className="font-bold text-sm text-foreground uppercase tracking-wider">What's Included:</h4>
+                <ul className="space-y-2.5 text-sm">
+                  <li className="flex items-start gap-2.5 text-muted-foreground">
+                    <LuCheck className="text-amber-500 size-5 shrink-0 mt-0.5" />
+                    <span>Access all locked premium recipes and instructions</span>
+                  </li>
+                  <li className="flex items-start gap-2.5 text-muted-foreground">
+                    <LuCheck className="text-amber-500 size-5 shrink-0 mt-0.5" />
+                    <span>Exclusive badges to stand out as a Pro Chef</span>
+                  </li>
+                  <li className="flex items-start gap-2.5 text-muted-foreground">
+                    <LuCheck className="text-amber-500 size-5 shrink-0 mt-0.5" />
+                    <span>Feature your own recipes on the landing page</span>
+                  </li>
+                  <li className="flex items-start gap-2.5 text-muted-foreground">
+                    <LuCheck className="text-amber-500 size-5 shrink-0 mt-0.5" />
+                    <span>Completely ad-free browsing experience</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-2">
+                <Button
+                  onClick={() => setIsUpgradeOpen(false)}
+                  variant="flat"
+                  className="flex-1 font-semibold rounded-2xl border border-border"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleUpgradeToPremium}
+                  disabled={isUpgradingLoading}
+                  className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-extrabold shadow-md hover:opacity-90 rounded-2xl"
+                >
+                  {isUpgradingLoading ? (
+                    <LuLoader className="size-5 animate-spin" />
+                  ) : (
+                    "Upgrade Now"
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
-}
+}
