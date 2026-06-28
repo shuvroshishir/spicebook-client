@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 
 import {
     Drawer,
@@ -21,6 +22,11 @@ import menuItems from "./menuItems";
 
 const SidebarContent = () => {
     const pathname = usePathname();
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     // Get user session
     const { data: session } = authClient.useSession();
@@ -32,16 +38,16 @@ const SidebarContent = () => {
             <div className="border-b p-6">
                 <div className="flex items-center gap-3">
                     <Avatar size="lg">
-                        <Avatar.Image referrerPolicy="no-referrer" alt={user?.name || "User"} src={user?.image} />
-                        <Avatar.Fallback>{user?.name ? user.name.charAt(0) : "S"}</Avatar.Fallback>
+                        <Avatar.Image referrerPolicy="no-referrer" alt={(mounted && user?.name) ? user.name : "User"} src={mounted ? user?.image : undefined} />
+                        <Avatar.Fallback>{(mounted && user?.name) ? user.name.charAt(0) : "S"}</Avatar.Fallback>
                     </Avatar>
 
                     <div>
                         <h3 className="font-semibold text-foreground">
-                            {user?.name || "User"}
+                            {(mounted && user?.name) ? user.name : "User"}
                         </h3>
                         <p className="text-sm text-default-500">
-                            {user?.email || "user@gmail.com"}
+                            {(mounted && user?.email) ? user.email : "...@gmail.com"}
                         </p>
                     </div>
                 </div>
