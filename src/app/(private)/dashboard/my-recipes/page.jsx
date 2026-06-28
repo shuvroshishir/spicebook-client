@@ -17,6 +17,7 @@ import {
   LuUpload,
   LuUtensils,
   LuBookOpen,
+  LuCrown,
 } from "react-icons/lu";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -69,9 +70,13 @@ export default function MyRecipesPage() {
   const [editPrepTime, setEditPrepTime] = useState("");
   const [editIngredients, setEditIngredients] = useState("");
   const [editInstructions, setEditInstructions] = useState("");
+  const [editIsPremiumRecipe, setEditIsPremiumRecipe] = useState(false);
+  const [editPrice, setEditPrice] = useState("");
 
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [recipeToDelete, setRecipeToDelete] = useState(null);
   const fileInputRef = useRef(null);
 
   // Fetch all recipes for current user
@@ -127,6 +132,8 @@ export default function MyRecipesPage() {
     setEditPrepTime(recipe.preparationTime);
     setEditIngredients(recipe.ingredients.join("\n"));
     setEditInstructions(recipe.instructions.join("\n"));
+    setEditIsPremiumRecipe(recipe.isPremiumRecipe === true);
+    setEditPrice(recipe.price ? recipe.price.toString() : "");
     setIsEditOpen(true);
   };
 
@@ -193,6 +200,14 @@ export default function MyRecipesPage() {
       .map((line) => line.trim())
       .filter((line) => line !== "");
 
+    if (editIsPremiumRecipe) {
+      if (!editPrice || parseFloat(editPrice) < 0.50) {
+        toast.error("Please specify a valid price of at least $0.50 for a premium recipe.");
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
     const updatedData = {
       recipeName: editName,
       recipeImage: editImage,
@@ -202,6 +217,8 @@ export default function MyRecipesPage() {
       preparationTime: editPrepTime,
       ingredients: ingredientsArray,
       instructions: instructionsArray,
+      isPremiumRecipe: editIsPremiumRecipe,
+      price: editIsPremiumRecipe ? parseFloat(editPrice) : 0,
     };
 
     try {
@@ -232,17 +249,21 @@ export default function MyRecipesPage() {
     }
   };
 
-  // Handle Delete Recipe
-  const handleDeleteRecipe = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this recipe? This action cannot be undone.")) {
-      return;
-    }
+   // Handle Open Delete Modal
+  const handleOpenDeleteModal = (recipe) => {
+    setRecipeToDelete(recipe);
+    setIsDeleteOpen(true);
+  };
 
+  // Handle Confirm Delete
+  const handleConfirmDelete = async () => {
+    if (!recipeToDelete) return;
+    setIsSubmitting(true);
     try {
       const tokenResult = await authClient.token();
       const token = tokenResult?.data?.token;
 
-      const response = await fetch(`${serverUrl}/recipes/${id}`, {
+      const response = await fetch(`${serverUrl}/recipes/${recipeToDelete._id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -254,10 +275,14 @@ export default function MyRecipesPage() {
       }
 
       toast.success("Recipe deleted successfully!");
-      setRecipes(recipes.filter((recipe) => recipe._id !== id));
+      setRecipes(recipes.filter((recipe) => recipe._id !== recipeToDelete._id));
+      setIsDeleteOpen(false);
+      setRecipeToDelete(null);
     } catch (error) {
       console.error(error);
       toast.error("Failed to delete recipe");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -369,9 +394,16 @@ export default function MyRecipesPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="inline-flex px-2.5 py-1 text-xs font-semibold rounded-full bg-default-100 dark:bg-default-900 text-default-800 dark:text-default-200 border border-default-200 dark:border-default-800 capitalize">
-                        {recipe.status || "Regular"}
-                      </span>
+                      {recipe.isPremiumRecipe ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 uppercase tracking-wider">
+                          <LuCrown className="size-3 text-amber-500" />
+                          Premium (${recipe.price?.toFixed(2)})
+                        </span>
+                      ) : (
+                        <span className="inline-flex px-2.5 py-1 text-xs font-semibold rounded-full bg-default-100 dark:bg-default-900 text-default-800 dark:text-default-200 border border-default-200 dark:border-default-800 capitalize">
+                          Free
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
@@ -397,7 +429,7 @@ export default function MyRecipesPage() {
                           isIconOnly
                           variant="light"
                           className="text-rose-500 hover:bg-rose-50 transition-colors"
-                          onClick={() => handleDeleteRecipe(recipe._id)}
+                          onClick={() => handleOpenDeleteModal(recipe)}
                           title="Delete Recipe"
                         >
                           <LuTrash2 className="size-5" />
@@ -444,9 +476,16 @@ export default function MyRecipesPage() {
                       <LuHeart className="fill-rose-500" />
                       {recipe.likesCount || 0}
                     </span>
-                    <span className="inline-flex px-2 py-0.5 text-xs font-semibold rounded-full bg-default-100 dark:bg-default-900 text-default-800 dark:text-default-200 border border-default-200 dark:border-default-800 capitalize">
-                      {recipe.status || "Regular"}
-                    </span>
+                    {recipe.isPremiumRecipe ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 uppercase tracking-wider">
+                        <LuCrown className="size-3 text-amber-500" />
+                        Premium (${recipe.price?.toFixed(2)})
+                      </span>
+                    ) : (
+                      <span className="inline-flex px-2 py-0.5 text-xs font-semibold rounded-full bg-default-100 dark:bg-default-900 text-default-800 dark:text-default-200 border border-default-200 dark:border-default-800 capitalize">
+                        Free
+                      </span>
+                    )}
                   </div>
 
                   <div className="flex gap-1">
@@ -473,7 +512,7 @@ export default function MyRecipesPage() {
                       size="sm"
                       variant="light"
                       className="text-rose-500"
-                      onClick={() => handleDeleteRecipe(recipe._id)}
+                      onClick={() => handleOpenDeleteModal(recipe)}
                     >
                       <LuTrash2 className="size-4" />
                     </Button>
@@ -722,6 +761,57 @@ export default function MyRecipesPage() {
                     className="w-full px-3 py-2.5 rounded-xl border border-default-300 hover:border-default-400 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none bg-card text-foreground transition-all text-sm placeholder:text-muted-foreground"
                   ></textarea>
                 </div>
+
+                {/* Premium Recipe Checkbox / Pricing */}
+                <div className="p-5 rounded-2xl border border-border bg-default-50/50 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <label className="text-sm font-bold text-foreground flex items-center gap-1.5 cursor-pointer select-none" htmlFor="edit-premium-recipe-checkbox">
+                        <LuCrown className="text-amber-500 size-4.5" />
+                        <span>Make this a Premium Recipe</span>
+                      </label>
+                      <p className="text-xs text-muted-foreground">
+                        Users will need to buy this specific recipe using Stripe to unlock its details.
+                      </p>
+                    </div>
+                    <input
+                      id="edit-premium-recipe-checkbox"
+                      type="checkbox"
+                      checked={editIsPremiumRecipe}
+                      onChange={(e) => {
+                        setEditIsPremiumRecipe(e.target.checked);
+                        if (!e.target.checked) setEditPrice("");
+                      }}
+                      className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary/25 cursor-pointer accent-primary"
+                    />
+                  </div>
+
+                  {editIsPremiumRecipe && (
+                    <div className="space-y-2 pt-2 border-t border-dashed border-border/80">
+                      <label className="text-sm font-semibold text-foreground flex items-center gap-1">
+                        Recipe Price (USD) <span className="text-primary">*</span>
+                      </label>
+                      <div className="relative rounded-xl shadow-xs">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <span className="text-muted-foreground text-sm font-semibold">$</span>
+                        </div>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0.50"
+                          placeholder="4.99"
+                          required={editIsPremiumRecipe}
+                          value={editPrice}
+                          onChange={(e) => setEditPrice(e.target.value)}
+                          className="w-full h-11 pl-7 pr-4 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-default font-semibold"
+                        />
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">
+                        Minimum recommended price is $0.50.
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Footer */}
@@ -744,6 +834,54 @@ export default function MyRecipesPage() {
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteOpen && recipeToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-card border border-border w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            {/* Header */}
+            <div className="px-6 pt-6 pb-2 flex items-center gap-3 text-rose-500">
+              <div className="bg-rose-500/10 p-2.5 rounded-xl">
+                <LuTrash2 className="size-6" />
+              </div>
+              <h3 className="text-lg font-bold text-foreground">Delete Recipe</h3>
+            </div>
+
+            {/* Body */}
+            <div className="px-6 py-3 text-sm text-muted-foreground leading-relaxed">
+              Are you sure you want to delete <span className="font-extrabold text-foreground">"{recipeToDelete.recipeName}"</span>? This action is permanent and cannot be undone.
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 mt-4 border-t border-border flex justify-end gap-2 bg-muted/20">
+              <Button
+                variant="light"
+                onClick={() => {
+                  setIsDeleteOpen(false);
+                  setRecipeToDelete(null);
+                }}
+                className="rounded-xl font-semibold text-foreground border border-border"
+              >
+                Cancel
+              </Button>
+              <Button
+                color="danger"
+                disabled={isSubmitting}
+                onClick={handleConfirmDelete}
+                className="bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-xl px-5"
+              >
+                {isSubmitting ? (
+                  <span className="flex items-center gap-2">
+                    <LuLoader className="animate-spin size-4" /> Deleting...
+                  </span>
+                ) : (
+                  "Delete Recipe"
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       )}

@@ -35,50 +35,62 @@ const SidebarContent = () => {
 
     return (
         <>
-            {/* User Profile */}
-            <div className="border-b p-6">
-                <div className="flex items-center gap-3">
-                    {mounted && user?.isPremium ? (
-                        <div className="relative group">
-                            <div className="p-[2.5px] rounded-full bg-gradient-to-tr from-amber-500 via-orange-400 to-yellow-500 shadow-md">
-                                <div className="p-[2px] bg-accent rounded-full">
-                                    <Avatar size="lg" className="cursor-pointer">
-                                        <Avatar.Image referrerPolicy="no-referrer" alt={user?.name || "User"} src={user?.image} />
-                                        <Avatar.Fallback>{user?.name ? user.name.charAt(0) : "S"}</Avatar.Fallback>
-                                    </Avatar>
+            {/* User Profile Card */}
+            <div className="p-4 border-b border-border/50">
+                <Link href="/dashboard/profile" className="block group">
+                    <div className="relative overflow-hidden rounded-2xl p-4 bg-default-50/50 border border-border/40 hover:bg-default-100/60 hover:border-primary/20 hover:shadow-xs transition-all duration-300">
+                        {/* Glow effect for premium user */}
+                        {mounted && user?.isPremium && (
+                            <div className="absolute inset-0 bg-radial-gradient from-amber-500/5 via-transparent to-transparent pointer-events-none" />
+                        )}
+                        <div className="flex items-center gap-3 relative z-10">
+                            {mounted && user?.isPremium ? (
+                                <div className="relative shrink-0">
+                                    <div className="p-[2.5px] rounded-full bg-gradient-to-tr from-amber-500 via-orange-400 to-yellow-500 shadow-xs">
+                                        <div className="p-[1px] bg-background rounded-full">
+                                            <Avatar size="sm" className="cursor-pointer">
+                                                <Avatar.Image referrerPolicy="no-referrer" alt={user?.name || "User"} src={user?.image} />
+                                                <Avatar.Fallback className="bg-default-100 text-foreground font-black text-xs">
+                                                    {user?.name ? user.name.charAt(0) : "U"}
+                                                </Avatar.Fallback>
+                                            </Avatar>
+                                        </div>
+                                    </div>
+                                    <div className="absolute -top-1 -right-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full p-0.5 border border-background shadow-xs">
+                                        <LuCrown className="size-2 text-white" />
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="absolute -top-1 -right-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full p-1 border border-accent shadow-sm" title="Premium Pro Member">
-                                <LuCrown className="size-3 text-white" />
+                            ) : (
+                                <Avatar size="sm" className="shrink-0 border-2 border-border/60">
+                                    <Avatar.Image referrerPolicy="no-referrer" alt={(mounted && user?.name) ? user.name : "User"} src={mounted ? user?.image : undefined} />
+                                    <Avatar.Fallback className="bg-default-100 text-foreground font-black text-xs">
+                                        {(mounted && user?.name) ? user.name.charAt(0) : "U"}
+                                    </Avatar.Fallback>
+                                </Avatar>
+                            )}
+
+                            <div className="overflow-hidden flex-1 min-w-0">
+                                {mounted && user?.isPremium ? (
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                        <h3 className="font-bold text-xs text-foreground truncate group-hover:text-primary transition-colors">
+                                            {user?.name || "User"}
+                                        </h3>
+                                        <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[8px] font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-widest shrink-0">
+                                            <LuCrown className="size-2 text-amber-500" /> PRO
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <h3 className="font-bold text-xs text-foreground truncate group-hover:text-primary transition-colors">
+                                        {(mounted && user?.name) ? user.name : "User"}
+                                    </h3>
+                                )}
+                                <p className="text-[10px] text-muted-foreground break-all font-medium mt-0.5 leading-tight" title={(mounted && user?.email) ? user.email : ""}>
+                                    {(mounted && user?.email) ? user.email : "...@gmail.com"}
+                                </p>
                             </div>
                         </div>
-                    ) : (
-                        <Avatar size="lg">
-                            <Avatar.Image referrerPolicy="no-referrer" alt={(mounted && user?.name) ? user.name : "User"} src={mounted ? user?.image : undefined} />
-                            <Avatar.Fallback>{(mounted && user?.name) ? user.name.charAt(0) : "S"}</Avatar.Fallback>
-                        </Avatar>
-                    )}
-
-                    <div className="overflow-hidden">
-                        {mounted && user?.isPremium ? (
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                                <h3 className="font-semibold text-foreground truncate max-w-[100px]" title={user?.name}>
-                                    {user?.name || "User"}
-                                </h3>
-                                <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-[9px] font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-wider shrink-0">
-                                    <LuCrown className="size-2 text-amber-500" /> Pro
-                                </span>
-                            </div>
-                        ) : (
-                            <h3 className="font-semibold text-foreground">
-                                {(mounted && user?.name) ? user.name : "User"}
-                            </h3>
-                        )}
-                        <p className="text-sm text-default-500 truncate" title={(mounted && user?.email) ? user.email : ""}>
-                            {(mounted && user?.email) ? user.email : "...@gmail.com"}
-                        </p>
                     </div>
-                </div>
+                </Link>
             </div>
 
             {/* Menu Items */}

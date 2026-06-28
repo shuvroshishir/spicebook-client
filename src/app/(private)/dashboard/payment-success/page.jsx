@@ -50,6 +50,12 @@ export default function PaymentSuccessPage() {
 
           toast.success("Welcome to Premium Pro!");
           try {
+            const currentSession = await authClient.getSession();
+            if (currentSession?.data?.user) {
+              await authClient.updateUser({
+                name: currentSession.data.user.name
+              });
+            }
             await authClient.getSession({ force: true });
           } catch (e) {
             console.error("Failed to force refresh session:", e);
@@ -161,8 +167,7 @@ export default function PaymentSuccessPage() {
         <div className="mt-8 flex flex-col sm:flex-row gap-3">
           <Button
             onClick={() => {
-              // Reload to refresh authentication session
-              window.location.href = "/dashboard";
+              router.push("/dashboard");
             }}
             variant="flat"
             className="flex-1 font-semibold rounded-2xl h-12 border border-border"
@@ -171,7 +176,7 @@ export default function PaymentSuccessPage() {
           </Button>
           <Button
             onClick={() => {
-              window.location.href = "/dashboard/add-recipe";
+              router.push("/dashboard/add-recipe");
             }}
             className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-extrabold shadow-md hover:opacity-90 rounded-2xl h-12 flex items-center justify-center gap-1.5"
           >

@@ -13,6 +13,12 @@ const menuItems = [
         href: "/dashboard",
         icon: House,
     },
+
+    {
+        label: "Profile",
+        href: "/dashboard/profile",
+        icon: Person,
+    },
     {
         label: "My Recipes",
         href: "/dashboard/my-recipes",
@@ -33,11 +39,6 @@ const menuItems = [
         label: "Purchased Recipes",
         href: "/dashboard/purchased-recipes",
         icon: ShoppingBag,
-    },
-    {
-        label: "Profile",
-        href: "/dashboard/profile",
-        icon: Person,
     },
 ];
 
