@@ -21,7 +21,7 @@ import menuItems from "./menuItems";
 
 const SidebarContent = () => {
     const pathname = usePathname();
-    
+
     // Get user session
     const { data: session } = authClient.useSession();
     const user = session?.user;
@@ -38,10 +38,10 @@ const SidebarContent = () => {
 
                     <div>
                         <h3 className="font-semibold text-foreground">
-                            {user?.name || "Shishir"}
+                            {user?.name || "User"}
                         </h3>
                         <p className="text-sm text-default-500">
-                            {user?.email || "shuvro@gmail.com"}
+                            {user?.email || "user@gmail.com"}
                         </p>
                     </div>
                 </div>
@@ -106,4 +106,4 @@ export default function DashboardSidebar() {
         </>
     );
 }
-
+

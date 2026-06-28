@@ -124,7 +124,7 @@ const NavBar = () => {
                                         <p>{user?.name}</p>
                                         <p className="text-primary">{user?.email}</p>
                                     </div>
-                                    <Link href="/dashboard" className="p-1 border border-gray-400 rounded-full">
+                                    <Link href="/dashboard/profile" className="p-1 border border-gray-400 rounded-full">
                                         <Avatar size="sm" className="cursor-pointer">
                                             <Avatar.Image referrerPolicy="no-referrer" alt={user?.name} src={user?.image} />
                                             <Avatar.Fallback>{user?.name.charAt(0)}</Avatar.Fallback>

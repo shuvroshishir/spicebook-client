@@ -28,7 +28,13 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000'}/my-listings`);
+        const tokenResult = await authClient.token();
+        const token = tokenResult?.data?.token;
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000'}/my-listings`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
         if (response.ok) {
           const data = await response.json();
           setStats(prev => ({
