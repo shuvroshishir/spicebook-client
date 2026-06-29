@@ -12,10 +12,9 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  Pagination,
   Chip,
 } from "@heroui/react";
-import { LuReceipt, LuLoader, LuDollarSign } from "react-icons/lu";
+import { LuReceipt, LuLoader, LuDollarSign, LuChevronLeft, LuChevronRight } from "react-icons/lu";
 import toast from "react-hot-toast";
 
 export default function TransactionsPage() {
@@ -237,15 +236,41 @@ export default function TransactionsPage() {
 
         {/* Server-Side Pagination Controls */}
         {totalPages > 1 && (
-          <div className="flex justify-center pt-2">
-            <Pagination
-              isCompact
-              showControls
-              color="primary"
-              page={currentPage}
-              total={totalPages}
-              onChange={setCurrentPage}
-            />
+          <div className="flex items-center justify-center gap-2 pt-4">
+            {/* Prev Button */}
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+              disabled={currentPage === 1}
+              className="p-2 rounded-xl border border-border bg-card text-foreground hover:bg-primary hover:text-white disabled:opacity-50 disabled:hover:bg-card disabled:hover:text-foreground transition-all duration-200 cursor-pointer shadow-xs disabled:cursor-not-allowed"
+            >
+              <LuChevronLeft className="size-4" />
+            </button>
+
+            {/* Page Numbers */}
+            {[...Array(totalPages)].map((_, index) => {
+              const pageNum = index + 1;
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`size-9 rounded-xl font-bold text-xs transition-all duration-200 cursor-pointer shadow-xs ${currentPage === pageNum
+                    ? "bg-primary text-white scale-105"
+                    : "border border-border bg-card text-foreground hover:bg-default-100"
+                    }`}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+
+            {/* Next Button */}
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="p-2 rounded-xl border border-border bg-card text-foreground hover:bg-primary hover:text-white disabled:opacity-50 disabled:hover:bg-card disabled:hover:text-foreground transition-all duration-200 cursor-pointer shadow-xs disabled:cursor-not-allowed"
+            >
+              <LuChevronRight className="size-4" />
+            </button>
           </div>
         )}
       </motion.div>

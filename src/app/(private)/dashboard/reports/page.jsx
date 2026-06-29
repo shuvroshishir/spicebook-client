@@ -30,6 +30,8 @@ export default function RecipeReportsPage() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null); // { recipeId, reportId }
 
   const fetchReports = async () => {
     try {
@@ -95,10 +97,15 @@ export default function RecipeReportsPage() {
     }
   };
 
-  const handleDeleteRecipe = async (recipeId, reportId) => {
-    if (!confirm("Are you sure you want to delete this reported recipe? This action cannot be undone.")) {
-      return;
-    }
+  const handleDeleteRecipe = (recipeId, reportId) => {
+    setDeleteTarget({ recipeId, reportId });
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    const { recipeId, reportId } = deleteTarget;
+    setIsDeleteModalOpen(false);
 
     setActionLoading(reportId);
     try {
@@ -126,6 +133,7 @@ export default function RecipeReportsPage() {
       toast.error("Failed to delete recipe");
     } finally {
       setActionLoading(null);
+      setDeleteTarget(null);
     }
   };
 
@@ -222,7 +230,7 @@ export default function RecipeReportsPage() {
                             by {report.recipeDetails.authorEmail || "Anonymous"}
                           </span>
                           <Link
-                            href={`/recipes/${report.recipeId}`}
+                            href={`/recipe/${report.recipeId}`}
                             target="_blank"
                             className="inline-flex items-center gap-0.5 text-[10px] text-primary font-semibold hover:underline mt-1"
                           >
@@ -343,7 +351,7 @@ export default function RecipeReportsPage() {
                             by {report.recipeDetails.authorEmail || "Anonymous"}
                           </span>
                           <Link
-                            href={`/recipes/${report.recipeId}`}
+                            href={`/recipe/${report.recipeId}`}
                             target="_blank"
                             className="inline-flex items-center gap-0.5 text-[10px] text-primary font-semibold hover:underline mt-1"
                           >
@@ -411,6 +419,45 @@ export default function RecipeReportsPage() {
           </div>
         )}
       </motion.div>
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200">
+          <div className="bg-card border border-border w-full max-w-md rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            {/* Warning Icon & Header */}
+            <div className="px-6 pt-6 pb-4 flex flex-col items-center text-center">
+              <div className="size-12 rounded-full bg-rose-500/10 flex items-center justify-center mb-3">
+                <LuTriangleAlert className="size-6 text-rose-500" />
+              </div>
+              <h3 className="text-lg font-bold text-foreground">Delete Reported Recipe</h3>
+              <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+                Are you sure you want to delete this reported recipe? This action will permanently remove the recipe from the platform and cannot be undone.
+              </p>
+            </div>
+            {/* Actions */}
+            <div className="px-6 py-4 bg-muted/20 border-t border-border flex items-center justify-end gap-3">
+              <Button
+                variant="flat"
+                color="default"
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setDeleteTarget(null);
+                }}
+                className="border border-border font-semibold rounded-xl"
+              >
+                Cancel
+              </Button>
+              <Button
+                color="danger"
+                onClick={handleConfirmDelete}
+                className="font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-xs rounded-xl"
+              >
+                Delete Recipe
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }

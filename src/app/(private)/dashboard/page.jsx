@@ -260,10 +260,6 @@ export default function DashboardPage() {
   const user = session?.user;
   const router = useRouter();
 
-  if (user?.role === "admin") {
-    return <AdminDashboardView user={user} />;
-  }
-
   const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
   const [isUpgradingLoading, setIsUpgradingLoading] = useState(false);
 
@@ -295,7 +291,7 @@ export default function DashboardPage() {
       }
     };
 
-    if (user) {
+    if (user && user.role !== "admin") {
       fetchStats();
     }
   }, [user]);
@@ -361,6 +357,10 @@ export default function DashboardPage() {
   };
 
   const name = user?.name || "Abc";
+
+  if (user?.role === "admin") {
+    return <AdminDashboardView user={user} />;
+  }
 
   return (
     <motion.div 

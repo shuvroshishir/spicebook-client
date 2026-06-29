@@ -26,6 +26,7 @@ import {
   LuCompass,
   LuChefHat,
   LuCheck,
+  LuTriangleAlert,
 } from "react-icons/lu";
 import toast from "react-hot-toast";
 
@@ -78,6 +79,10 @@ export default function ManageRecipesPage() {
   const [editIsPremium, setEditIsPremium] = useState(false);
   const [editPrice, setEditPrice] = useState("");
   const [editSubmitting, setEditSubmitting] = useState(false);
+  
+  // Delete Modal States
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteRecipeId, setDeleteRecipeId] = useState(null);
 
   const fetchRecipes = async () => {
     try {
@@ -144,19 +149,23 @@ export default function ManageRecipesPage() {
     }
   };
 
-  const handleDeleteRecipe = async (recipeId) => {
-    if (!confirm("Are you sure you want to permanently delete this recipe? This will also remove any user reviews, favorites, or reports associated with it.")) {
-      return;
-    }
+  const handleDeleteRecipe = (recipeId) => {
+    setDeleteRecipeId(recipeId);
+    setIsDeleteModalOpen(true);
+  };
 
-    setActionLoading(recipeId);
+  const handleConfirmDelete = async () => {
+    if (!deleteRecipeId) return;
+    setIsDeleteModalOpen(false);
+
+    setActionLoading(deleteRecipeId);
     try {
       const tokenResult = await authClient.token();
       const token = tokenResult?.data?.token;
       if (!token) return;
 
       const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
-      const response = await fetch(`${serverUrl}/admin/recipes/${recipeId}`, {
+      const response = await fetch(`${serverUrl}/admin/recipes/${deleteRecipeId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -165,7 +174,7 @@ export default function ManageRecipesPage() {
 
       if (response.ok) {
         toast.success("Recipe deleted successfully");
-        setRecipes((prev) => prev.filter((r) => r._id !== recipeId));
+        setRecipes((prev) => prev.filter((r) => r._id !== deleteRecipeId));
       } else {
         toast.error("Failed to delete recipe");
       }
@@ -174,6 +183,7 @@ export default function ManageRecipesPage() {
       toast.error("Failed to delete recipe");
     } finally {
       setActionLoading(null);
+      setDeleteRecipeId(null);
     }
   };
 
@@ -394,7 +404,7 @@ export default function ManageRecipesPage() {
                         variant="flat"
                         color="warning"
                         size="sm"
-                        className="font-extrabold text-[10px] tracking-wide uppercase bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center gap-1"
+                        className="font-extrabold text-[10px] tracking-wide uppercase bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 inline-flex items-center gap-1"
                       >
                         <LuCrown className="size-3.5 text-amber-500" />
                         <span>${recipe.price?.toFixed(2) || "0.50"}</span>
@@ -507,7 +517,7 @@ export default function ManageRecipesPage() {
                           variant="flat"
                           color="warning"
                           size="sm"
-                          className="font-extrabold text-[9px] tracking-wide uppercase bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center gap-1"
+                          className="font-extrabold text-[9px] tracking-wide uppercase bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 inline-flex items-center gap-1"
                         >
                           <LuCrown className="size-3 text-amber-500" />
                           <span>${recipe.price?.toFixed(2) || "0.50"}</span>
@@ -573,7 +583,7 @@ export default function ManageRecipesPage() {
           <div className="bg-card border border-border w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
             {/* Header */}
             <div className="px-6 py-4 border-b border-border flex justify-between items-center bg-muted/20">
-              <h3 className="text-xl font-bold text-foreground">Edit Recipe details</h3>
+              <h3 className="text-xl font-bold text-foreground">Edit Recipe Details</h3>
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
@@ -587,33 +597,37 @@ export default function ManageRecipesPage() {
               
               {/* Recipe Name */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-foreground">Recipe Name *</label>
-                <Input
+                <label className="text-sm font-semibold text-foreground">Recipe Name *</label>
+                <input
                   required
+                  type="text"
                   value={editName}
-                  onValueChange={setEditName}
+                  onChange={(e) => setEditName(e.target.value)}
                   placeholder="Enter recipe title"
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-default"
                 />
               </div>
 
               {/* Recipe Image URL */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-foreground">Image URL</label>
-                <Input
+                <label className="text-sm font-semibold text-foreground">Image URL</label>
+                <input
+                  type="text"
                   value={editImage}
-                  onValueChange={setEditImage}
+                  onChange={(e) => setEditImage(e.target.value)}
                   placeholder="Paste thumbnail image URL"
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-default"
                 />
               </div>
 
               {/* Category & Cuisine Grid */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-foreground">Category *</label>
+                  <label className="text-sm font-semibold text-foreground">Category *</label>
                   <select
                     value={editCategory}
                     onChange={(e) => setEditCategory(e.target.value)}
-                    className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/25"
+                    className="w-full h-11 px-3 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-default"
                   >
                     {CATEGORIES.map((cat) => (
                       <option key={cat} value={cat}>
@@ -623,11 +637,11 @@ export default function ManageRecipesPage() {
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-foreground">Cuisine</label>
+                  <label className="text-sm font-semibold text-foreground">Cuisine</label>
                   <select
                     value={editCuisine}
                     onChange={(e) => setEditCuisine(e.target.value)}
-                    className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/25"
+                    className="w-full h-11 px-3 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-default"
                   >
                     <option value="">None</option>
                     {CUISINES.map((cui) => (
@@ -642,19 +656,21 @@ export default function ManageRecipesPage() {
               {/* Prep Time & Difficulty */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-foreground">Prep Time</label>
-                  <Input
+                  <label className="text-sm font-semibold text-foreground">Prep Time</label>
+                  <input
+                    type="text"
                     value={editPrepTime}
-                    onValueChange={setEditPrepTime}
+                    onChange={(e) => setEditPrepTime(e.target.value)}
                     placeholder="e.g. 20 minutes"
+                    className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-default"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-foreground">Difficulty Level *</label>
+                  <label className="text-sm font-semibold text-foreground">Difficulty Level *</label>
                   <select
                     value={editDifficulty}
                     onChange={(e) => setEditDifficulty(e.target.value)}
-                    className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/25"
+                    className="w-full h-11 px-3 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-default"
                   >
                     {DIFFICULTIES.map((diff) => (
                       <option key={diff} value={diff}>
@@ -667,25 +683,27 @@ export default function ManageRecipesPage() {
 
               {/* Ingredients Textarea */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-foreground">Ingredients (one per line) *</label>
-                <TextArea
+                <label className="text-sm font-semibold text-foreground">Ingredients (one per line) *</label>
+                <textarea
                   required
                   value={editIngredients}
                   onChange={(e) => setEditIngredients(e.target.value)}
                   rows={4}
                   placeholder="Enter ingredients on separate lines"
+                  className="w-full p-4 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-default"
                 />
               </div>
 
               {/* Instructions Textarea */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-foreground">Instructions (one per line) *</label>
-                <TextArea
+                <label className="text-sm font-semibold text-foreground">Instructions (one per line) *</label>
+                <textarea
                   required
                   value={editInstructions}
                   onChange={(e) => setEditInstructions(e.target.value)}
                   rows={4}
                   placeholder="Enter steps on separate lines"
+                  className="w-full p-4 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-default"
                 />
               </div>
 
@@ -693,7 +711,7 @@ export default function ManageRecipesPage() {
               <div className="p-4 rounded-xl border border-border bg-default-50/50 flex flex-col gap-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-sm font-bold text-foreground flex items-center gap-1">
+                    <span className="text-sm font-bold text-foreground flex items-center gap-1.5">
                       <LuCrown className="text-amber-500 size-4" /> Premium Locked Recipe
                     </span>
                     <p className="text-xs text-muted-foreground mt-0.5">
@@ -711,18 +729,23 @@ export default function ManageRecipesPage() {
                   />
                 </div>
                 {editIsPremium && (
-                  <div className="flex items-center gap-2 pt-2 border-t border-dashed border-border/80">
+                  <div className="flex items-center gap-3 pt-3 border-t border-dashed border-border/80">
                     <span className="text-sm font-semibold text-foreground">Price (USD):</span>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0.50"
-                      placeholder="2.99"
-                      value={editPrice}
-                      onValueChange={setEditPrice}
-                      className="w-28 font-bold"
-                      startContent={<span className="text-xs text-muted-foreground font-semibold">$</span>}
-                    />
+                    <div className="relative rounded-xl shadow-xs w-36">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span className="text-muted-foreground text-sm font-semibold">$</span>
+                      </div>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0.50"
+                        placeholder="2.99"
+                        required={editIsPremium}
+                        value={editPrice}
+                        onChange={(e) => setEditPrice(e.target.value)}
+                        className="w-full h-10 pl-7 pr-3 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-default font-semibold"
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -730,16 +753,55 @@ export default function ManageRecipesPage() {
             </div>
             {/* Footer */}
             <div className="px-6 py-4 border-t border-border flex justify-end gap-3">
-              <Button variant="flat" color="default" onClick={() => setIsOpen(false)} className="border border-border">
+              <Button variant="flat" color="default" onClick={() => setIsOpen(false)} className="border border-border rounded-xl font-semibold">
                 Cancel
               </Button>
               <Button
-                color="primary"
+                color="success"
                 isLoading={editSubmitting}
                 onClick={handleSaveRecipe}
-                className="font-bold text-white shadow-xs"
+                className="font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs rounded-xl"
               >
                 Save Changes
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200">
+          <div className="bg-card border border-border w-full max-w-md rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            {/* Warning Icon & Header */}
+            <div className="px-6 pt-6 pb-4 flex flex-col items-center text-center">
+              <div className="size-12 rounded-full bg-rose-500/10 flex items-center justify-center mb-3">
+                <LuTriangleAlert className="size-6 text-rose-500" />
+              </div>
+              <h3 className="text-lg font-bold text-foreground">Delete Recipe</h3>
+              <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+                Are you sure you want to permanently delete this recipe? This will also remove any user reviews, favorites, or reports associated with it. This action cannot be undone.
+              </p>
+            </div>
+            {/* Actions */}
+            <div className="px-6 py-4 bg-muted/20 border-t border-border flex items-center justify-end gap-3">
+              <Button
+                variant="flat"
+                color="default"
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setDeleteRecipeId(null);
+                }}
+                className="border border-border font-semibold rounded-xl"
+              >
+                Cancel
+              </Button>
+              <Button
+                color="danger"
+                onClick={handleConfirmDelete}
+                className="font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-xs rounded-xl"
+              >
+                Delete Recipe
               </Button>
             </div>
           </div>

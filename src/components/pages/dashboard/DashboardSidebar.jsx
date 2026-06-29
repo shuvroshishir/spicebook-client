@@ -30,8 +30,38 @@ const SidebarContent = () => {
     }, []);
 
     // Get user session
-    const { data: session } = authClient.useSession();
+    const { data: session, isPending } = authClient.useSession();
     const user = session?.user;
+    const isLoading = !mounted || isPending;
+
+    if (isLoading) {
+        return (
+            <>
+                {/* User Profile Card Skeleton */}
+                <div className="p-4 border-b border-border/50">
+                    <div className="rounded-2xl p-4 bg-default-50/50 border border-border/40 flex items-center gap-3 animate-pulse">
+                        {/* Avatar Skeleton */}
+                        <div className="w-8 h-8 rounded-full bg-default-200 shrink-0" />
+                        {/* Text Skeleton */}
+                        <div className="flex-1 min-w-0 space-y-2">
+                            <div className="h-3 w-20 bg-default-200 rounded-sm animate-pulse" />
+                            <div className="h-2 w-32 bg-default-200 rounded-sm animate-pulse" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Navigation Skeleton */}
+                <div className="space-y-2 p-4 animate-pulse">
+                    {[1, 2, 3, 4, 5].map((val) => (
+                        <div key={val} className="flex items-center gap-3 rounded-xl px-4 py-3 bg-default-50/20">
+                            <div className="size-5 rounded-md bg-default-200 shrink-0 animate-pulse" />
+                            <div className="h-4 w-28 bg-default-200 rounded-sm animate-pulse" />
+                        </div>
+                    ))}
+                </div>
+            </>
+        );
+    }
 
     return (
         <>
@@ -40,11 +70,11 @@ const SidebarContent = () => {
                 <Link href="/dashboard/profile" className="block group">
                     <div className="relative overflow-hidden rounded-2xl p-4 bg-default-50/50 border border-border/40 hover:bg-default-100/60 hover:border-primary/20 hover:shadow-xs transition-all duration-300">
                         {/* Glow effect for premium user */}
-                        {mounted && user?.isPremium && (
+                        {user?.isPremium && (
                             <div className="absolute inset-0 bg-radial-gradient from-amber-500/5 via-transparent to-transparent pointer-events-none" />
                         )}
                         <div className="flex items-center gap-3 relative z-10">
-                            {mounted && user?.isPremium ? (
+                            {user?.isPremium ? (
                                 <div className="relative shrink-0">
                                     <div className="p-[2.5px] rounded-full bg-gradient-to-tr from-amber-500 via-orange-400 to-yellow-500 shadow-xs">
                                         <div className="p-[1px] bg-background rounded-full">
@@ -62,15 +92,15 @@ const SidebarContent = () => {
                                 </div>
                             ) : (
                                 <Avatar size="sm" className="shrink-0 border-2 border-border/60">
-                                    <Avatar.Image referrerPolicy="no-referrer" alt={(mounted && user?.name) ? user.name : "User"} src={mounted ? user?.image : undefined} />
+                                    <Avatar.Image referrerPolicy="no-referrer" alt={user?.name ? user.name : "User"} src={user?.image} />
                                     <Avatar.Fallback className="bg-default-100 text-foreground font-black text-xs">
-                                        {(mounted && user?.name) ? user.name.charAt(0) : "U"}
+                                        {user?.name ? user.name.charAt(0) : "U"}
                                     </Avatar.Fallback>
                                 </Avatar>
                             )}
 
                             <div className="overflow-hidden flex-1 min-w-0">
-                                {mounted && user?.isPremium ? (
+                                {user?.isPremium ? (
                                     <div className="flex items-center gap-1.5 flex-wrap">
                                         <h3 className="font-bold text-xs text-foreground truncate group-hover:text-primary transition-colors">
                                             {user?.name || "User"}
@@ -81,11 +111,11 @@ const SidebarContent = () => {
                                     </div>
                                 ) : (
                                     <h3 className="font-bold text-xs text-foreground truncate group-hover:text-primary transition-colors">
-                                        {(mounted && user?.name) ? user.name : "User"}
+                                        {user?.name ? user.name : "User"}
                                     </h3>
                                 )}
-                                <p className="text-[10px] text-muted-foreground break-all font-medium mt-0.5 leading-tight" title={(mounted && user?.email) ? user.email : ""}>
-                                    {(mounted && user?.email) ? user.email : "...@gmail.com"}
+                                <p className="text-[10px] text-muted-foreground break-all font-medium mt-0.5 leading-tight" title={user?.email ? user.email : ""}>
+                                    {user?.email ? user.email : ""}
                                 </p>
                             </div>
                         </div>
@@ -94,7 +124,7 @@ const SidebarContent = () => {
             </div>
 
             <nav className="space-y-2 p-4">
-                {(mounted && user?.role === "admin" ? adminMenuItems : userMenuItems).map((item) => {
+                {(user?.role === "admin" ? adminMenuItems : userMenuItems).map((item) => {
                     const Icon = item.icon;
                     const active = pathname === item.href;
 
