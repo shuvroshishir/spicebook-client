@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# SpiceBook — Recipe Sharing & Culinary Inspiration Platform (Client)
 
-## Getting Started
+SpiceBook is a modern, responsive, and full-featured recipe-sharing platform where food enthusiasts can discover, create, purchase, and bookmark recipes. Built using **Next.js (App Router)** and styled with a premium dark-themed layout, SpiceBook delivers a top-tier user experience with smooth animations, responsive cards, and secure user states.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🌟 Key Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 👤 User Features & Authentication
+* **Secure Authentication**: Authentication with cookie-based session tracking and route protection.
+* **Profile Management**: Customize profile details, view creation status, and upload profile pictures.
+* **Recipe Limit Enforcement**: Standard accounts are limited to publishing exactly **2 recipes** to encourage premium subscriptions.
+* **Dynamic User Dashboard**: Track your published recipe count, dynamic bookmark counts, and overall recipe engagement (total likes) at a glance.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+### 💳 Monetization & Stripe Payments
+* **Stripe Checkout Integration**: Seamless payment flows for purchasing individual premium recipes or upgrading to a **Premium Member** subscription.
+* **Unlimited Uploads**: Upgrading to a premium subscription instantly lifts the 2-recipe upload restriction.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 🍽️ Recipe Explorer & Interactivity
+* **Categorized Recipe Browser**: Explore recipes filtered by categories (Breakfast, Dinner, Lunch, etc.) with custom server-side pagination.
+* **Bookmarks & Favorites**: Bookmark your favorite recipes and manage them in your dedicated "My Favorites" list.
+* **Purchased Recipes**: View and access all premium recipes you have unlocked.
+* **Likes & Community Reports**: Like recipes to boost their engagement or report inappropriate content with a detailed report form.
 
-## Learn More
+### 🛠️ Admin Command Center
+* **User Management**: Search, block/unblock users, or promote users to Admin roles.
+* **Recipe Management**: Review pending recipe listings, approve them to publish, or delete them.
+* **Report Auditing**: Inspect community reports and resolve them using custom interactive confirmation modals.
+* **Stripe Transactions History**: Audit payment checkout records, transaction IDs, status, and earnings with a cleanly paginated server-side interface.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 💻 Tech Stack
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+* **Framework**: Next.js 15+ (App Router)
+* **Styling**: Tailwind CSS
+* **UI Components**: HeroUI (formerly NextUI)
+* **Animations**: Framer Motion
+* **Icons**: React Icons (Lucide, Lu)
+* **Toasts**: React Hot Toast
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## ⚙️ Installation & Setup
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. **Clone the Repository**:
+   ```bash
+   git clone <repository-url>
+   cd spicebook-client
+   ```
+
+2. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Configure Environment Variables**:
+   Create a `.env` file in the root directory and add the backend server URL:
+   ```env
+   NEXT_PUBLIC_SERVER_URL=http://localhost:5000
+   ```
+
+4. **Start the Development Server**:
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.
+
+5. **Build for Production**:
+   ```bash
+   npm run build
+   npm run start
+   ```
+
+---
+
+## 🔒 Environment Security & Rules of Hooks
+All hooks and API calls are structured following the Next.js standard best practices, preventing rules-of-hooks violations and ensuring stable client-side state during user login/logout transitions.
