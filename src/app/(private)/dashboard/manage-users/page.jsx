@@ -5,15 +5,15 @@ import { motion } from "framer-motion";
 import { authClient } from "@/lib/auth-client";
 import {
   Table,
+  TableScrollContainer,
+  TableContent,
   TableHeader,
   TableColumn,
   TableBody,
   TableRow,
   TableCell,
-  User,
   Chip,
   Button,
-  Input,
   Tooltip,
 } from "@heroui/react";
 import { LuSearch, LuShieldAlert, LuUserCheck, LuCrown, LuLoader } from "react-icons/lu";
@@ -151,28 +151,161 @@ export default function ManageUsersPage() {
       </motion.div>
 
       {/* Filter and Search */}
-      <motion.div variants={itemVariants}>
-        <Input
-          isClearable
-          className="w-full max-w-md"
+      <motion.div variants={itemVariants} className="relative w-full max-w-md">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <LuSearch className="text-default-400 size-4 shrink-0" />
+        </div>
+        <input
+          type="text"
+          className="w-full h-11 pl-10 pr-10 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
           placeholder="Search by name, email, or role..."
-          startContent={<LuSearch className="text-default-400 size-4 shrink-0" />}
           value={searchQuery}
-          onValueChange={setSearchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
         />
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => setSearchQuery("")}
+            className="absolute inset-y-0 right-0 pr-3 flex items-center text-default-400 hover:text-foreground transition-colors"
+          >
+            ✕
+          </button>
+        )}
       </motion.div>
 
-      {/* Users Table */}
-      <motion.div variants={itemVariants} className="bg-card border border-border rounded-3xl overflow-hidden shadow-xs">
-        <Table aria-label="Registered user database table" className="p-0 border-none">
-          <TableHeader>
-            <TableColumn className="bg-default-50 text-xs font-bold text-muted-foreground uppercase py-4">User Details</TableColumn>
-            <TableColumn className="bg-default-50 text-xs font-bold text-muted-foreground uppercase py-4">Role</TableColumn>
-            <TableColumn className="bg-default-50 text-xs font-bold text-muted-foreground uppercase py-4">Membership</TableColumn>
-            <TableColumn className="bg-default-50 text-xs font-bold text-muted-foreground uppercase py-4">Account Status</TableColumn>
-            <TableColumn className="bg-default-50 text-xs font-bold text-muted-foreground uppercase py-4 text-center">Actions</TableColumn>
-          </TableHeader>
-          <TableBody emptyContent="No registered users found matching the query.">
+      {/* Users Table (Desktop) */}
+      <motion.div variants={itemVariants} className="bg-card border border-border rounded-3xl overflow-hidden shadow-xs hidden md:block">
+        <Table className="p-0 border-none">
+          <TableScrollContainer>
+            <TableContent aria-label="Registered user database table">
+              <TableHeader>
+                <TableColumn isRowHeader className="bg-default-50 text-xs font-bold text-muted-foreground uppercase py-4">User Details</TableColumn>
+                <TableColumn className="bg-default-50 text-xs font-bold text-muted-foreground uppercase py-4">Role</TableColumn>
+                <TableColumn className="bg-default-50 text-xs font-bold text-muted-foreground uppercase py-4">Membership</TableColumn>
+                <TableColumn className="bg-default-50 text-xs font-bold text-muted-foreground uppercase py-4">Account Status</TableColumn>
+                <TableColumn className="bg-default-50 text-xs font-bold text-muted-foreground uppercase py-4 text-center">Actions</TableColumn>
+              </TableHeader>
+              <TableBody emptyContent="No registered users found matching the query.">
+                {filteredUsers.map((userObj) => {
+                  const userId = userObj.id || userObj._id;
+                  const isUserAdmin = userObj.role === "admin";
+                  const isBlocked = userObj.isBlocked === true;
+                  const isPremium = userObj.isPremium === true;
+
+                  return (
+                    <TableRow key={userId} className="border-b border-border/40 hover:bg-default-50/50 transition-colors">
+                      <TableCell className="py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="size-10 rounded-full border border-border/40 bg-default-100 text-foreground font-black flex items-center justify-center shrink-0 overflow-hidden relative">
+                            {userObj.image ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={userObj.image}
+                                alt={userObj.name || "User"}
+                                className="w-full h-full object-cover relative z-10"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = "none";
+                                }}
+                              />
+                            ) : null}
+                            <span className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
+                              {userObj.name ? userObj.name.charAt(0).toUpperCase() : "U"}
+                            </span>
+                          </div>
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-sm font-semibold text-foreground truncate">
+                              {userObj.name || "User"}
+                            </span>
+                            <span className="text-xs text-muted-foreground truncate">
+                              {userObj.email}
+                            </span>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-4">
+                        <Chip
+                          size="sm"
+                          variant="flat"
+                          color={isUserAdmin ? "warning" : "default"}
+                          className="font-semibold text-xs capitalize"
+                        >
+                          {userObj.role || "user"}
+                        </Chip>
+                      </TableCell>
+                      <TableCell className="py-4">
+                        {isPremium ? (
+                          <Chip
+                            variant="flat"
+                            color="warning"
+                            size="sm"
+                            className="font-extrabold text-[10px] tracking-wide uppercase bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 inline-flex items-center gap-1"
+                          >
+                            <LuCrown className="size-3.5 text-amber-500" />
+                            <span>PRO</span>
+                          </Chip>
+                        ) : (
+                          <Chip size="sm" variant="flat" className="font-semibold text-xs text-muted-foreground uppercase">
+                            BASIC
+                          </Chip>
+                        )}
+                      </TableCell>
+                      <TableCell className="py-4">
+                        <Chip
+                          size="sm"
+                          variant="dot"
+                          color={isBlocked ? "danger" : "success"}
+                          className="font-semibold text-xs"
+                        >
+                          {isBlocked ? "Blocked" : "Active"}
+                        </Chip>
+                      </TableCell>
+                      <TableCell className="py-4 text-center">
+                        <div className="flex justify-center">
+                          {isUserAdmin ? (
+                            <span className="text-xs text-muted-foreground italic font-medium">No actions</span>
+                          ) : (
+                            <Button
+                              size="sm"
+                              isLoading={actionLoading === userId}
+                              onClick={() => handleBlockToggle(userId, isBlocked)}
+                              className={`font-bold text-xs rounded-xl flex items-center gap-1.5 px-3 h-8 shadow-xs border transition-all ${
+                                isBlocked
+                                  ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20"
+                                  : "bg-transparent border-rose-500/50 hover:border-rose-500 text-rose-500 hover:bg-rose-500/10"
+                              }`}
+                            >
+                              {isBlocked ? (
+                                <>
+                                  <LuUserCheck className="size-3.5" />
+                                  <span>Unblock</span>
+                                </>
+                              ) : (
+                                <>
+                                  <LuShieldAlert className="size-3.5" />
+                                  <span>Block</span>
+                                </>
+                              )}
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </TableContent>
+          </TableScrollContainer>
+        </Table>
+      </motion.div>
+
+      {/* Users Cards (Mobile/Tablet) */}
+      <motion.div variants={itemVariants} className="md:hidden">
+        {filteredUsers.length === 0 ? (
+          <div className="text-center p-8 border border-border rounded-3xl bg-card text-muted-foreground text-sm">
+            No registered users found matching the query.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4">
             {filteredUsers.map((userObj) => {
               const userId = userObj.id || userObj._id;
               const isUserAdmin = userObj.role === "admin";
@@ -180,83 +313,111 @@ export default function ManageUsersPage() {
               const isPremium = userObj.isPremium === true;
 
               return (
-                <TableRow key={userId} className="border-b border-border/40 hover:bg-default-50/50 transition-colors">
-                  <TableCell className="py-4">
-                    <User
-                      avatarProps={{
-                        src: userObj.image,
-                        name: userObj.name ? userObj.name.charAt(0) : "U",
-                        className: "bg-default-100 text-foreground font-black border border-border/40",
-                      }}
-                      description={userObj.email}
-                      name={userObj.name || "User"}
-                    />
-                  </TableCell>
-                  <TableCell className="py-4">
-                    <Chip
-                      size="sm"
-                      variant="flat"
-                      color={isUserAdmin ? "warning" : "default"}
-                      className="font-semibold text-xs capitalize"
-                    >
-                      {userObj.role || "user"}
-                    </Chip>
-                  </TableCell>
-                  <TableCell className="py-4">
-                    {isPremium ? (
+                <div
+                  key={userId}
+                  className="p-5 border border-border rounded-2xl bg-card hover:shadow-md transition-shadow flex flex-col gap-4"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="size-12 rounded-full border border-border/40 bg-default-100 text-foreground font-black flex items-center justify-center shrink-0 overflow-hidden relative">
+                      {userObj.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={userObj.image}
+                          alt={userObj.name || "User"}
+                          className="w-full h-full object-cover relative z-10"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
+                      ) : null}
+                      <span className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
+                        {userObj.name ? userObj.name.charAt(0).toUpperCase() : "U"}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-foreground truncate">{userObj.name || "User"}</p>
+                      <p className="text-xs text-muted-foreground truncate">{userObj.email}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 pt-2 border-t border-border/50">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs text-muted-foreground font-semibold">Role:</span>
                       <Chip
-                        startContent={<LuCrown className="size-3.5 mr-0.5 text-amber-500" />}
-                        variant="flat"
-                        color="warning"
                         size="sm"
-                        className="font-extrabold text-[10px] tracking-wide uppercase bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                        variant="flat"
+                        color={isUserAdmin ? "warning" : "default"}
+                        className="font-semibold text-[10px] capitalize"
                       >
-                        PRO
+                        {userObj.role || "user"}
                       </Chip>
-                    ) : (
-                      <Chip size="sm" variant="flat" className="font-semibold text-xs text-muted-foreground uppercase">
-                        BASIC
+                    </div>
+
+                    <div className="flex items-center gap-1.5 ml-auto">
+                      <span className="text-xs text-muted-foreground font-semibold">Status:</span>
+                      <Chip
+                        size="sm"
+                        variant="dot"
+                        color={isBlocked ? "danger" : "success"}
+                        className="font-semibold text-[10px]"
+                      >
+                        {isBlocked ? "Blocked" : "Active"}
                       </Chip>
-                    )}
-                  </TableCell>
-                  <TableCell className="py-4">
-                    <Chip
-                      size="sm"
-                      variant="dot"
-                      color={isBlocked ? "danger" : "success"}
-                      className="font-semibold text-xs"
-                    >
-                      {isBlocked ? "Blocked" : "Active"}
-                    </Chip>
-                  </TableCell>
-                  <TableCell className="py-4 text-center">
-                    {isUserAdmin ? (
-                      <span className="text-xs text-muted-foreground italic font-medium">No actions</span>
-                    ) : (
-                      <Tooltip content={isBlocked ? "Unblock this User" : "Block this User"}>
-                        <Button
-                          isIconOnly
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs text-muted-foreground font-semibold">Membership:</span>
+                      {isPremium ? (
+                        <Chip
+                          variant="flat"
+                          color="warning"
                           size="sm"
-                          variant="light"
-                          color={isBlocked ? "success" : "danger"}
+                          className="font-extrabold text-[9px] tracking-wide uppercase bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 inline-flex items-center gap-1"
+                        >
+                          <LuCrown className="size-3 text-amber-500" />
+                          <span>PRO</span>
+                        </Chip>
+                      ) : (
+                        <Chip size="sm" variant="flat" className="font-semibold text-[9px] text-muted-foreground uppercase">
+                          BASIC
+                        </Chip>
+                      )}
+                    </div>
+
+                    <div className="flex gap-2">
+                      {!isUserAdmin && (
+                        <Button
+                          size="sm"
                           isLoading={actionLoading === userId}
                           onClick={() => handleBlockToggle(userId, isBlocked)}
-                          className="rounded-xl hover:bg-default-100"
+                          className={`font-bold text-xs rounded-xl flex items-center gap-1.5 px-4 h-8 shadow-xs border transition-all ${
+                            isBlocked
+                              ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20"
+                              : "bg-transparent border-rose-500/50 hover:border-rose-500 text-rose-500 hover:bg-rose-500/10"
+                          }`}
                         >
                           {isBlocked ? (
-                            <LuUserCheck className="size-4" />
+                            <>
+                              <LuUserCheck className="size-3.5" />
+                              <span>Unblock</span>
+                            </>
                           ) : (
-                            <LuShieldAlert className="size-4" />
+                            <>
+                              <LuShieldAlert className="size-3.5" />
+                              <span>Block</span>
+                            </>
                           )}
                         </Button>
-                      </Tooltip>
-                    )}
-                  </TableCell>
-                </TableRow>
+                      )}
+                    </div>
+                  </div>
+                </div>
               );
             })}
-          </TableBody>
-        </Table>
+          </div>
+        )}
       </motion.div>
     </motion.div>
   );

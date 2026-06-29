@@ -48,6 +48,12 @@ export const adminMenuItems = [
         href: "/dashboard",
         icon: House,
     },
+
+    {
+        label: "Profile",
+        href: "/dashboard/profile",
+        icon: Person,
+    },
     {
         label: "Manage Users",
         href: "/dashboard/manage-users",
@@ -67,10 +73,5 @@ export const adminMenuItems = [
         label: "Transactions",
         href: "/dashboard/transactions",
         icon: LuReceipt,
-    },
-    {
-        label: "Profile",
-        href: "/dashboard/profile",
-        icon: Person,
     },
 ];

@@ -5,27 +5,21 @@ import { motion } from "framer-motion";
 import { authClient } from "@/lib/auth-client";
 import {
   Table,
+  TableScrollContainer,
+  TableContent,
   TableHeader,
   TableColumn,
   TableBody,
   TableRow,
   TableCell,
   Button,
-  Input,
   Tooltip,
   Chip,
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  useDisclosure,
-  Textarea,
 } from "@heroui/react";
 import {
   LuSearch,
   LuTrash2,
-  LuEdit3,
+  LuPencil,
   LuStar,
   LuLoader,
   LuCrown,
@@ -71,7 +65,7 @@ export default function ManageRecipesPage() {
   const [actionLoading, setActionLoading] = useState(null);
 
   // Edit Modal States
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const [isOpen, setIsOpen] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [editName, setEditName] = useState("");
   const [editImage, setEditImage] = useState("");
@@ -199,7 +193,7 @@ export default function ManageRecipesPage() {
     );
     setEditIsPremium(recipe.isPremiumRecipe === true);
     setEditPrice(recipe.price || "");
-    onOpen();
+    setIsOpen(true);
   };
 
   const handleSaveRecipe = async () => {
@@ -260,7 +254,7 @@ export default function ManageRecipesPage() {
             r._id === selectedRecipe._id ? { ...r, ...updatedRecipeData } : r
           )
         );
-        onOpenChange(false);
+        setIsOpen(false);
       } else {
         toast.error("Failed to update recipe");
       }
@@ -322,22 +316,35 @@ export default function ManageRecipesPage() {
       </motion.div>
 
       {/* Filter and Search */}
-      <motion.div variants={itemVariants}>
-        <Input
-          isClearable
-          className="w-full max-w-md"
+      <motion.div variants={itemVariants} className="relative w-full max-w-md">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <LuSearch className="text-default-400 size-4 shrink-0" />
+        </div>
+        <input
+          type="text"
+          className="w-full h-11 pl-10 pr-10 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
           placeholder="Search by title, category, or cuisine..."
-          startContent={<LuSearch className="text-default-400 size-4 shrink-0" />}
           value={searchQuery}
-          onValueChange={setSearchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
         />
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => setSearchQuery("")}
+            className="absolute inset-y-0 right-0 pr-3 flex items-center text-default-400 hover:text-foreground transition-colors"
+          >
+            ✕
+          </button>
+        )}
       </motion.div>
 
-      {/* Recipes Table */}
-      <motion.div variants={itemVariants} className="bg-card border border-border rounded-3xl overflow-hidden shadow-xs">
-        <Table aria-label="Community recipe listings database" className="p-0 border-none">
+      {/* Recipes Table (Desktop) */}
+      <motion.div variants={itemVariants} className="bg-card border border-border rounded-3xl overflow-hidden shadow-xs hidden md:block">
+        <Table className="p-0 border-none">
+          <TableScrollContainer>
+            <TableContent aria-label="Community recipe listings database">
           <TableHeader>
-            <TableColumn className="bg-default-50 text-xs font-bold text-muted-foreground uppercase py-4">Recipe Details</TableColumn>
+            <TableColumn isRowHeader className="bg-default-50 text-xs font-bold text-muted-foreground uppercase py-4">Recipe Details</TableColumn>
             <TableColumn className="bg-default-50 text-xs font-bold text-muted-foreground uppercase py-4">Category</TableColumn>
             <TableColumn className="bg-default-50 text-xs font-bold text-muted-foreground uppercase py-4">Status</TableColumn>
             <TableColumn className="bg-default-50 text-xs font-bold text-muted-foreground uppercase py-4">Featured</TableColumn>
@@ -384,13 +391,13 @@ export default function ManageRecipesPage() {
                   <TableCell className="py-4">
                     {isPremium ? (
                       <Chip
-                        startContent={<LuCrown className="size-3.5 mr-0.5 text-amber-500" />}
                         variant="flat"
                         color="warning"
                         size="sm"
-                        className="font-extrabold text-[10px] tracking-wide uppercase bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                        className="font-extrabold text-[10px] tracking-wide uppercase bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center gap-1"
                       >
-                        ${recipe.price?.toFixed(2) || "0.50"}
+                        <LuCrown className="size-3.5 text-amber-500" />
+                        <span>${recipe.price?.toFixed(2) || "0.50"}</span>
                       </Chip>
                     ) : (
                       <Chip size="sm" variant="flat" className="font-semibold text-xs text-muted-foreground uppercase">
@@ -424,7 +431,7 @@ export default function ManageRecipesPage() {
                           onClick={() => handleOpenEditModal(recipe)}
                           className="rounded-xl hover:bg-default-100"
                         >
-                          <LuEdit3 className="size-4 text-default-600" />
+                          <LuPencil className="size-4 text-default-600" />
                         </Button>
                       </Tooltip>
                       <Tooltip content="Delete Recipe">
@@ -446,179 +453,298 @@ export default function ManageRecipesPage() {
               );
             })}
           </TableBody>
+            </TableContent>
+          </TableScrollContainer>
         </Table>
       </motion.div>
 
-      {/* Edit Recipe Modal */}
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="2xl" scrollBehavior="inside" className="bg-card border border-border">
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1 text-2xl font-black text-foreground">
-                Edit Recipe details
-              </ModalHeader>
-              <ModalBody className="space-y-4 py-6">
-                
-                {/* Recipe Name */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-foreground">Recipe Name *</label>
-                  <Input
-                    required
-                    value={editName}
-                    onValueChange={setEditName}
-                    placeholder="Enter recipe title"
-                  />
-                </div>
+      {/* Recipes Cards (Mobile/Tablet) */}
+      <motion.div variants={itemVariants} className="md:hidden">
+        {filteredRecipes.length === 0 ? (
+          <div className="text-center p-8 border border-border rounded-3xl bg-card text-muted-foreground text-sm">
+            No recipes found in the database.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4">
+            {filteredRecipes.map((recipe) => {
+              const recipeId = recipe._id;
+              const isPremium = recipe.isPremiumRecipe === true;
+              const isFeatured = recipe.isFeatured === true;
 
-                {/* Recipe Image URL */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-foreground">Image URL</label>
-                  <Input
-                    value={editImage}
-                    onValueChange={setEditImage}
-                    placeholder="Paste thumbnail image URL"
-                  />
-                </div>
-
-                {/* Category & Cuisine Grid */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-foreground">Category *</label>
-                    <select
-                      value={editCategory}
-                      onChange={(e) => setEditCategory(e.target.value)}
-                      className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/25"
-                    >
-                      {CATEGORIES.map((cat) => (
-                        <option key={cat} value={cat}>
-                          {cat}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-foreground">Cuisine</label>
-                    <select
-                      value={editCuisine}
-                      onChange={(e) => setEditCuisine(e.target.value)}
-                      className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/25"
-                    >
-                      <option value="">None</option>
-                      {CUISINES.map((cui) => (
-                        <option key={cui} value={cui}>
-                          {cui}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {/* Prep Time & Difficulty */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-foreground">Prep Time</label>
-                    <Input
-                      value={editPrepTime}
-                      onValueChange={setEditPrepTime}
-                      placeholder="e.g. 20 minutes"
+              return (
+                <div
+                  key={recipeId}
+                  className="p-5 border border-border rounded-2xl bg-card hover:shadow-md transition-shadow flex flex-col gap-4"
+                >
+                  <div className="flex items-center gap-3">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={recipe.recipeImage || "https://images.unsplash.com/photo-1495521821757-a1efb6729352?q=80&w=200"}
+                      alt={recipe.recipeName}
+                      className="w-14 h-14 rounded-xl object-cover border border-border/40 shrink-0"
                     />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-foreground">Difficulty Level *</label>
-                    <select
-                      value={editDifficulty}
-                      onChange={(e) => setEditDifficulty(e.target.value)}
-                      className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/25"
-                    >
-                      {DIFFICULTIES.map((diff) => (
-                        <option key={diff} value={diff}>
-                          {diff}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {/* Ingredients Textarea */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-foreground">Ingredients (one per line) *</label>
-                  <Textarea
-                    required
-                    value={editIngredients}
-                    onValueChange={setEditIngredients}
-                    rows={4}
-                    placeholder="Enter ingredients on separate lines"
-                  />
-                </div>
-
-                {/* Instructions Textarea */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-foreground">Instructions (one per line) *</label>
-                  <Textarea
-                    required
-                    value={editInstructions}
-                    onValueChange={setEditInstructions}
-                    rows={4}
-                    placeholder="Enter steps on separate lines"
-                  />
-                </div>
-
-                {/* Premium Setting */}
-                <div className="p-4 rounded-xl border border-border bg-default-50/50 flex flex-col gap-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-sm font-bold text-foreground flex items-center gap-1">
-                        <LuCrown className="text-amber-500 size-4" /> Premium Locked Recipe
-                      </span>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        Whether this recipe requires payment to unlock instructions.
+                    <div className="overflow-hidden min-w-0 flex-1">
+                      <h4 className="font-bold text-sm text-foreground truncate">
+                        {recipe.recipeName || "Untitled Recipe"}
+                      </h4>
+                      <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                        by {recipe.authorName || recipe.authorEmail || "Anonymous"}
                       </p>
                     </div>
-                    <input
-                      type="checkbox"
-                      checked={editIsPremium}
-                      onChange={(e) => {
-                        setEditIsPremium(e.target.checked);
-                        if (!e.target.checked) setEditPrice("");
-                      }}
-                      className="w-4 h-4 rounded border-border text-primary cursor-pointer accent-primary"
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 pt-2 border-t border-border/50">
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-muted-foreground font-semibold">Category:</span>
+                      <span className="text-xs font-semibold text-foreground bg-default-100 dark:bg-default-900 px-2 py-0.5 rounded-md ml-1">
+                        {recipe.category || "General"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 ml-auto">
+                      {isPremium ? (
+                        <Chip
+                          variant="flat"
+                          color="warning"
+                          size="sm"
+                          className="font-extrabold text-[9px] tracking-wide uppercase bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center gap-1"
+                        >
+                          <LuCrown className="size-3 text-amber-500" />
+                          <span>${recipe.price?.toFixed(2) || "0.50"}</span>
+                        </Chip>
+                      ) : (
+                        <Chip size="sm" variant="flat" className="font-semibold text-[9px] text-muted-foreground uppercase">
+                          Free
+                        </Chip>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-muted-foreground font-semibold">Featured:</span>
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="light"
+                        color={isFeatured ? "warning" : "default"}
+                        isLoading={actionLoading === recipeId}
+                        onClick={() => handleToggleFeatured(recipeId)}
+                        className="rounded-xl hover:bg-default-100"
+                      >
+                        <LuStar className={`size-4 ${isFeatured ? "fill-amber-500 text-amber-500" : "text-default-400"}`} />
+                      </Button>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="flat"
+                        color="default"
+                        onClick={() => handleOpenEditModal(recipe)}
+                        className="font-bold text-xs rounded-xl flex items-center gap-1.5 px-3 h-8 shadow-xs"
+                      >
+                        <LuPencil className="size-3.5 text-default-600 mr-0.5" />
+                        <span>Edit</span>
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="flat"
+                        color="danger"
+                        isLoading={actionLoading === recipeId}
+                        onClick={() => handleDeleteRecipe(recipeId)}
+                        className="font-bold text-xs rounded-xl flex items-center gap-1.5 px-3 h-8 shadow-xs"
+                      >
+                        <LuTrash2 className="size-3.5 text-rose-500 mr-0.5" />
+                        <span>Delete</span>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </motion.div>
+
+      {/* Edit Recipe Modal */}
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity">
+          <div className="bg-card border border-border w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-border flex justify-between items-center bg-muted/20">
+              <h3 className="text-xl font-bold text-foreground">Edit Recipe details</h3>
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="text-muted-foreground hover:text-foreground text-2xl font-light cursor-pointer"
+              >
+                &times;
+              </button>
+            </div>
+            {/* Body */}
+            <div className="p-6 overflow-y-auto flex-1 space-y-4">
+              
+              {/* Recipe Name */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-foreground">Recipe Name *</label>
+                <Input
+                  required
+                  value={editName}
+                  onValueChange={setEditName}
+                  placeholder="Enter recipe title"
+                />
+              </div>
+
+              {/* Recipe Image URL */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-foreground">Image URL</label>
+                <Input
+                  value={editImage}
+                  onValueChange={setEditImage}
+                  placeholder="Paste thumbnail image URL"
+                />
+              </div>
+
+              {/* Category & Cuisine Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-foreground">Category *</label>
+                  <select
+                    value={editCategory}
+                    onChange={(e) => setEditCategory(e.target.value)}
+                    className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/25"
+                  >
+                    {CATEGORIES.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-foreground">Cuisine</label>
+                  <select
+                    value={editCuisine}
+                    onChange={(e) => setEditCuisine(e.target.value)}
+                    className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/25"
+                  >
+                    <option value="">None</option>
+                    {CUISINES.map((cui) => (
+                      <option key={cui} value={cui}>
+                        {cui}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Prep Time & Difficulty */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-foreground">Prep Time</label>
+                  <Input
+                    value={editPrepTime}
+                    onValueChange={setEditPrepTime}
+                    placeholder="e.g. 20 minutes"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-foreground">Difficulty Level *</label>
+                  <select
+                    value={editDifficulty}
+                    onChange={(e) => setEditDifficulty(e.target.value)}
+                    className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/25"
+                  >
+                    {DIFFICULTIES.map((diff) => (
+                      <option key={diff} value={diff}>
+                        {diff}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Ingredients Textarea */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-foreground">Ingredients (one per line) *</label>
+                <TextArea
+                  required
+                  value={editIngredients}
+                  onChange={(e) => setEditIngredients(e.target.value)}
+                  rows={4}
+                  placeholder="Enter ingredients on separate lines"
+                />
+              </div>
+
+              {/* Instructions Textarea */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-foreground">Instructions (one per line) *</label>
+                <TextArea
+                  required
+                  value={editInstructions}
+                  onChange={(e) => setEditInstructions(e.target.value)}
+                  rows={4}
+                  placeholder="Enter steps on separate lines"
+                />
+              </div>
+
+              {/* Premium Setting */}
+              <div className="p-4 rounded-xl border border-border bg-default-50/50 flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-sm font-bold text-foreground flex items-center gap-1">
+                      <LuCrown className="text-amber-500 size-4" /> Premium Locked Recipe
+                    </span>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Whether this recipe requires payment to unlock instructions.
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={editIsPremium}
+                    onChange={(e) => {
+                      setEditIsPremium(e.target.checked);
+                      if (!e.target.checked) setEditPrice("");
+                    }}
+                    className="w-4 h-4 rounded border-border text-primary cursor-pointer accent-primary"
+                  />
+                </div>
+                {editIsPremium && (
+                  <div className="flex items-center gap-2 pt-2 border-t border-dashed border-border/80">
+                    <span className="text-sm font-semibold text-foreground">Price (USD):</span>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0.50"
+                      placeholder="2.99"
+                      value={editPrice}
+                      onValueChange={setEditPrice}
+                      className="w-28 font-bold"
+                      startContent={<span className="text-xs text-muted-foreground font-semibold">$</span>}
                     />
                   </div>
-                  {editIsPremium && (
-                    <div className="flex items-center gap-2 pt-2 border-t border-dashed border-border/80">
-                      <span className="text-sm font-semibold text-foreground">Price (USD):</span>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min="0.50"
-                        placeholder="2.99"
-                        value={editPrice}
-                        onValueChange={setEditPrice}
-                        className="w-28 font-bold"
-                        startContent={<span className="text-xs text-muted-foreground font-semibold">$</span>}
-                      />
-                    </div>
-                  )}
-                </div>
+                )}
+              </div>
 
-              </ModalBody>
-              <ModalFooter>
-                <Button variant="flat" color="default" onPress={onClose} className="border border-border">
-                  Cancel
-                </Button>
-                <Button
-                  color="primary"
-                  isLoading={editSubmitting}
-                  onPress={handleSaveRecipe}
-                  className="font-bold text-white shadow-xs"
-                >
-                  Save Changes
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+            </div>
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-border flex justify-end gap-3">
+              <Button variant="flat" color="default" onClick={() => setIsOpen(false)} className="border border-border">
+                Cancel
+              </Button>
+              <Button
+                color="primary"
+                isLoading={editSubmitting}
+                onClick={handleSaveRecipe}
+                className="font-bold text-white shadow-xs"
+              >
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }

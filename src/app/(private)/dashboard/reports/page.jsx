@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import { authClient } from "@/lib/auth-client";
 import {
   Table,
+  TableScrollContainer,
+  TableContent,
   TableHeader,
   TableColumn,
   TableBody,
@@ -17,7 +19,7 @@ import {
 import {
   LuTriangleAlert,
   LuTrash2,
-  LuCheckCircle2,
+  LuCircleCheck,
   LuLoader,
   LuExternalLink,
 } from "react-icons/lu";
@@ -167,11 +169,13 @@ export default function RecipeReportsPage() {
         </div>
       </motion.div>
 
-      {/* Reports Table */}
-      <motion.div variants={itemVariants} className="bg-card border border-border rounded-3xl overflow-hidden shadow-xs">
-        <Table aria-label="Community recipe reports listings" className="p-0 border-none">
+      {/* Reports Table (Desktop) */}
+      <motion.div variants={itemVariants} className="bg-card border border-border rounded-3xl overflow-hidden shadow-xs hidden md:block">
+        <Table className="p-0 border-none">
+          <TableScrollContainer>
+            <TableContent aria-label="Community recipe reports listings">
           <TableHeader>
-            <TableColumn className="bg-default-50 text-xs font-bold text-muted-foreground uppercase py-4">Report Details</TableColumn>
+            <TableColumn isRowHeader className="bg-default-50 text-xs font-bold text-muted-foreground uppercase py-4">Report Details</TableColumn>
             <TableColumn className="bg-default-50 text-xs font-bold text-muted-foreground uppercase py-4">Recipe Info</TableColumn>
             <TableColumn className="bg-default-50 text-xs font-bold text-muted-foreground uppercase py-4">Reporter</TableColumn>
             <TableColumn className="bg-default-50 text-xs font-bold text-muted-foreground uppercase py-4">Status</TableColumn>
@@ -258,7 +262,7 @@ export default function RecipeReportsPage() {
                             onClick={() => handleDismissReport(reportId)}
                             className="rounded-xl hover:bg-default-100"
                           >
-                            <LuCheckCircle2 className="size-4 text-emerald-500" />
+                            <LuCircleCheck className="size-4 text-emerald-500" />
                           </Button>
                         </Tooltip>
                       )}
@@ -283,7 +287,129 @@ export default function RecipeReportsPage() {
               );
             })}
           </TableBody>
+            </TableContent>
+          </TableScrollContainer>
         </Table>
+      </motion.div>
+
+      {/* Reports Cards (Mobile/Tablet) */}
+      <motion.div variants={itemVariants} className="md:hidden">
+        {reports.length === 0 ? (
+          <div className="text-center p-8 border border-border rounded-3xl bg-card text-muted-foreground text-sm">
+            No recipe reports have been filed.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4">
+            {reports.map((report) => {
+              const reportId = report._id;
+              const hasRecipe = !!report.recipeDetails;
+              const status = report.status || "active";
+              const isDismissed = status === "dismissed";
+
+              return (
+                <div
+                  key={reportId}
+                  className="p-5 border border-border rounded-2xl bg-card hover:shadow-md transition-shadow flex flex-col gap-4"
+                >
+                  <div>
+                    <span className="text-xs text-rose-500 font-bold uppercase tracking-wider block">
+                      Reason: {report.reason || "General Violation"}
+                    </span>
+                    {report.details && (
+                      <p className="text-xs text-muted-foreground leading-normal mt-1 italic">
+                        "{report.details}"
+                      </p>
+                    )}
+                    <span className="text-[10px] text-muted-foreground mt-1.5 block">
+                      Reported on: {report.createdAt ? new Date(report.createdAt).toLocaleDateString() : new Date().toLocaleDateString()}
+                    </span>
+                  </div>
+
+                  <div className="pt-3 border-t border-border/50">
+                    <p className="text-xs text-muted-foreground font-semibold mb-2">Target Recipe:</p>
+                    {hasRecipe ? (
+                      <div className="flex items-center gap-3 bg-default-50/50 p-2.5 rounded-xl border border-border/40">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={report.recipeDetails.recipeImage || "https://images.unsplash.com/photo-1495521821757-a1efb6729352?q=80&w=200"}
+                          alt={report.recipeDetails.recipeName}
+                          className="w-12 h-12 rounded-lg object-cover border border-border/40 shrink-0"
+                        />
+                        <div className="overflow-hidden min-w-0 flex-1">
+                          <h4 className="font-bold text-xs text-foreground truncate">
+                            {report.recipeDetails.recipeName}
+                          </h4>
+                          <span className="text-[10px] text-muted-foreground block truncate">
+                            by {report.recipeDetails.authorEmail || "Anonymous"}
+                          </span>
+                          <Link
+                            href={`/recipes/${report.recipeId}`}
+                            target="_blank"
+                            className="inline-flex items-center gap-0.5 text-[10px] text-primary font-semibold hover:underline mt-1"
+                          >
+                            View recipe <LuExternalLink className="size-2.5" />
+                          </Link>
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground italic">Recipe Already Deleted</span>
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 pt-3 border-t border-border/50 items-center justify-between">
+                    <div className="min-w-0">
+                      <p className="text-[10px] text-muted-foreground font-semibold font-semibold">Reporter:</p>
+                      <p className="text-xs font-semibold text-foreground truncate max-w-[150px]">
+                        {report.userEmail || "Anonymous User"}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs text-muted-foreground font-semibold">Status:</span>
+                      <Chip
+                        size="sm"
+                        variant="flat"
+                        color={isDismissed ? "success" : "danger"}
+                        className="font-semibold text-[10px] capitalize"
+                      >
+                        {status}
+                      </Chip>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 pt-3 border-t border-border/50 justify-end">
+                    {!isDismissed && (
+                      <Button
+                        size="sm"
+                        variant="flat"
+                        color="success"
+                        isLoading={actionLoading === reportId}
+                        onClick={() => handleDismissReport(reportId)}
+                        className="font-bold text-xs rounded-xl flex items-center gap-1.5 px-3 h-8 shadow-xs"
+                      >
+                        <LuCircleCheck className="size-3.5 text-emerald-500 mr-0.5" />
+                        <span>Dismiss Report</span>
+                      </Button>
+                    )}
+                    {hasRecipe && (
+                      <Button
+                        size="sm"
+                        variant="flat"
+                        color="danger"
+                        isLoading={actionLoading === reportId}
+                        onClick={() => handleDeleteRecipe(report.recipeId, reportId)}
+                        className="font-bold text-xs rounded-xl flex items-center gap-1.5 px-3 h-8 shadow-xs"
+                      >
+                        <LuTrash2 className="size-3.5 text-rose-500 mr-0.5" />
+                        <span>Delete Recipe</span>
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </motion.div>
     </motion.div>
   );

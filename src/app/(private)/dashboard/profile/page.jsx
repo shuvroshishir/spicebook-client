@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { authClient } from "@/lib/auth-client";
-import { Button, Input } from "@heroui/react";
+import { Button } from "@heroui/react";
 import { 
   LuUser, 
   LuMail, 
@@ -300,21 +300,20 @@ export default function ProfilePage() {
                   <label htmlFor="name-input" className="text-sm font-semibold text-foreground">
                     Display Name
                   </label>
-                  <Input
-                    id="name-input"
-                    type="text"
-                    placeholder="Enter your full name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    variant="bordered"
-                    radius="md"
-                    startcontent={<LuUser className="text-muted-foreground size-4 shrink-0" />}
-                    classnames={{
-                      inputWrapper: "border-border hover:border-primary/50 focus-within:!border-primary",
-                      input: "text-foreground",
-                    }}
-                    required
-                  />
+                  <div className="relative rounded-xl shadow-xs">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <LuUser className="text-muted-foreground size-4 shrink-0" />
+                    </div>
+                    <input
+                      id="name-input"
+                      type="text"
+                      placeholder="Enter your full name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                      className="w-full h-11 pl-10 pr-4 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    />
+                  </div>
                 </div>
 
                 {/* Email (Read Only) Input */}
@@ -322,20 +321,21 @@ export default function ProfilePage() {
                   <label htmlFor="email-input" className="text-sm font-semibold text-foreground">
                     Email Address
                   </label>
-                  <Input
-                    id="email-input"
-                    type="email"
-                    value={user?.email || ""}
-                    disabled
-                    variant="flat"
-                    radius="md"
-                    startcontent={<LuMail className="text-muted-foreground/50 size-4 shrink-0" />}
-                    description="Email address cannot be changed."
-                    classnames={{
-                      inputWrapper: "bg-default-50 border border-transparent cursor-not-allowed opacity-75",
-                      input: "text-muted-foreground cursor-not-allowed",
-                    }}
-                  />
+                  <div className="relative rounded-xl shadow-xs opacity-75">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <LuMail className="text-muted-foreground/50 size-4 shrink-0" />
+                    </div>
+                    <input
+                      id="email-input"
+                      type="email"
+                      value={user?.email || ""}
+                      disabled
+                      className="w-full h-11 pl-10 pr-4 rounded-xl border border-border bg-default-50 text-sm text-muted-foreground cursor-not-allowed focus:outline-none"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Email address cannot be changed.
+                  </p>
                 </div>
               </div>
 

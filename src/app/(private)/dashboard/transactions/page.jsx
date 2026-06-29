@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import { authClient } from "@/lib/auth-client";
 import {
   Table,
+  TableScrollContainer,
+  TableContent,
   TableHeader,
   TableColumn,
   TableBody,
@@ -102,64 +104,135 @@ export default function TransactionsPage() {
 
       {/* Transactions Table with Loader */}
       <motion.div variants={itemVariants} className="space-y-4">
-        <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-xs relative min-h-[300px]">
+        {/* Desktop Table */}
+        <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-xs relative min-h-[300px] hidden md:block">
           {loading && (
             <div className="absolute inset-0 bg-card/60 backdrop-blur-xs flex items-center justify-center z-10 transition-opacity">
               <LuLoader className="size-8 animate-spin text-primary" />
             </div>
           )}
-          <Table aria-label="Stripe payment records" className="p-0 border-none">
-            <TableHeader>
-              <TableColumn className="bg-default-50 text-xs font-bold text-muted-foreground uppercase py-4">User Details</TableColumn>
-              <TableColumn className="bg-default-50 text-xs font-bold text-muted-foreground uppercase py-4">Transaction ID</TableColumn>
-              <TableColumn className="bg-default-50 text-xs font-bold text-muted-foreground uppercase py-4">Amount</TableColumn>
-              <TableColumn className="bg-default-50 text-xs font-bold text-muted-foreground uppercase py-4">Date & Time</TableColumn>
-              <TableColumn className="bg-default-50 text-xs font-bold text-muted-foreground uppercase py-4">Status</TableColumn>
-            </TableHeader>
-            <TableBody emptyContent={loading ? "Loading transactions..." : "No transaction records found."}>
+          <Table className="p-0 border-none">
+            <TableScrollContainer>
+              <TableContent aria-label="Stripe payment records">
+                <TableHeader>
+                  <TableColumn isRowHeader className="bg-default-50 text-xs font-bold text-muted-foreground uppercase py-4">User Details</TableColumn>
+                  <TableColumn className="bg-default-50 text-xs font-bold text-muted-foreground uppercase py-4">Transaction ID</TableColumn>
+                  <TableColumn className="bg-default-50 text-xs font-bold text-muted-foreground uppercase py-4">Amount</TableColumn>
+                  <TableColumn className="bg-default-50 text-xs font-bold text-muted-foreground uppercase py-4">Date & Time</TableColumn>
+                  <TableColumn className="bg-default-50 text-xs font-bold text-muted-foreground uppercase py-4">Status</TableColumn>
+                </TableHeader>
+                <TableBody emptyContent={loading ? "Loading transactions..." : "No transaction records found."}>
+                  {transactions.map((tx) => {
+                    const txId = tx._id || tx.transactionId;
+                    const txDate = tx.paidAt ? new Date(tx.paidAt).toLocaleString() : new Date().toLocaleString();
+
+                    return (
+                      <TableRow key={txId} className="border-b border-border/40 hover:bg-default-50/50 transition-colors">
+                        <TableCell className="py-4">
+                          <div className="flex flex-col">
+                            <span className="text-sm font-semibold text-foreground break-all">
+                              {tx.userEmail || "Anonymous"}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground mt-0.5 font-medium uppercase tracking-wider">
+                              Type: {tx.recipeId ? "Recipe Unlock" : "Premium Upgrade"}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-4 font-mono text-xs text-muted-foreground break-all select-all">
+                          {tx.transactionId || "N/A"}
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <span className="text-sm font-black text-foreground flex items-center">
+                            <LuDollarSign className="size-3.5 text-emerald-500" />
+                            {tx.amount ? tx.amount.toFixed(2) : "0.00"}
+                          </span>
+                        </TableCell>
+                        <TableCell className="py-4 text-xs text-muted-foreground">
+                          {txDate}
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <Chip
+                            size="sm"
+                            variant="flat"
+                            color="success"
+                            className="font-bold text-xs uppercase bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                          >
+                            {tx.paymentStatus || "paid"}
+                          </Chip>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </TableContent>
+            </TableScrollContainer>
+          </Table>
+        </div>
+
+        {/* Transactions Cards (Mobile/Tablet) */}
+        <div className="relative md:hidden min-h-[150px]">
+          {loading && (
+            <div className="absolute inset-0 bg-background/60 backdrop-blur-xs flex items-center justify-center z-10 transition-opacity">
+              <LuLoader className="size-8 animate-spin text-primary" />
+            </div>
+          )}
+          {transactions.length === 0 ? (
+            <div className="text-center p-8 border border-border rounded-3xl bg-card text-muted-foreground text-sm">
+              {!loading && "No transaction records found."}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4">
               {transactions.map((tx) => {
                 const txId = tx._id || tx.transactionId;
                 const txDate = tx.paidAt ? new Date(tx.paidAt).toLocaleString() : new Date().toLocaleString();
 
                 return (
-                  <TableRow key={txId} className="border-b border-border/40 hover:bg-default-50/50 transition-colors">
-                    <TableCell className="py-4">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-semibold text-foreground break-all">
+                  <div
+                    key={txId}
+                    className="p-5 border border-border rounded-2xl bg-card hover:shadow-md transition-shadow flex flex-col gap-3"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-foreground truncate">
                           {tx.userEmail || "Anonymous"}
-                        </span>
-                        <span className="text-[10px] text-muted-foreground mt-0.5 font-medium uppercase tracking-wider">
+                        </p>
+                        <span className="text-[10px] text-muted-foreground mt-0.5 font-medium uppercase tracking-wider block">
                           Type: {tx.recipeId ? "Recipe Unlock" : "Premium Upgrade"}
                         </span>
                       </div>
-                    </TableCell>
-                    <TableCell className="py-4 font-mono text-xs text-muted-foreground break-all select-all">
-                      {tx.transactionId || "N/A"}
-                    </TableCell>
-                    <TableCell className="py-4">
-                      <span className="text-sm font-black text-foreground flex items-center">
-                        <LuDollarSign className="size-3.5 text-emerald-500" />
-                        {tx.amount ? tx.amount.toFixed(2) : "0.00"}
-                      </span>
-                    </TableCell>
-                    <TableCell className="py-4 text-xs text-muted-foreground">
-                      {txDate}
-                    </TableCell>
-                    <TableCell className="py-4">
                       <Chip
                         size="sm"
                         variant="flat"
                         color="success"
-                        className="font-bold text-xs uppercase bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                        className="font-bold text-[10px] uppercase bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0"
                       >
                         {tx.paymentStatus || "paid"}
                       </Chip>
-                    </TableCell>
-                  </TableRow>
+                    </div>
+
+                    <div className="pt-2 border-t border-border/50 text-xs text-muted-foreground flex flex-col gap-1">
+                      <div className="flex justify-between">
+                        <span className="font-semibold text-muted-foreground">Tx ID:</span>
+                        <span className="font-mono select-all text-foreground">{tx.transactionId || "N/A"}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-semibold text-muted-foreground">Date:</span>
+                        <span className="text-foreground">{txDate}</span>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-border/50 flex justify-between items-center">
+                      <span className="text-xs text-muted-foreground font-semibold">Amount Paid:</span>
+                      <span className="text-base font-black text-foreground flex items-center">
+                        <LuDollarSign className="size-4 text-emerald-500" />
+                        {tx.amount ? tx.amount.toFixed(2) : "0.00"}
+                      </span>
+                    </div>
+                  </div>
                 );
               })}
-            </TableBody>
-          </Table>
+            </div>
+          )}
         </div>
 
         {/* Server-Side Pagination Controls */}
