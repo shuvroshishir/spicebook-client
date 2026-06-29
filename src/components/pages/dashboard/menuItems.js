@@ -6,14 +6,14 @@ import {
     ShoppingBag,
     Person,
 } from "@gravity-ui/icons";
+import { LuUsers, LuTriangleAlert, LuReceipt } from "react-icons/lu";
 
-const menuItems = [
+export const userMenuItems = [
     {
         label: "Overview",
         href: "/dashboard",
         icon: House,
     },
-
     {
         label: "Profile",
         href: "/dashboard/profile",
@@ -42,4 +42,35 @@ const menuItems = [
     },
 ];
 
-export default menuItems;
+export const adminMenuItems = [
+    {
+        label: "Overview",
+        href: "/dashboard",
+        icon: House,
+    },
+    {
+        label: "Manage Users",
+        href: "/dashboard/manage-users",
+        icon: LuUsers,
+    },
+    {
+        label: "Manage Recipes",
+        href: "/dashboard/manage-recipes",
+        icon: BookOpen,
+    },
+    {
+        label: "Recipe Reports",
+        href: "/dashboard/reports",
+        icon: LuTriangleAlert,
+    },
+    {
+        label: "Transactions",
+        href: "/dashboard/transactions",
+        icon: LuReceipt,
+    },
+    {
+        label: "Profile",
+        href: "/dashboard/profile",
+        icon: Person,
+    },
+];

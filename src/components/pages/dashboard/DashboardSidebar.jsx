@@ -19,7 +19,7 @@ import {
 
 import { LuCrown } from "react-icons/lu";
 import { authClient } from "@/lib/auth-client";
-import menuItems from "./menuItems";
+import { userMenuItems, adminMenuItems } from "./menuItems";
 
 const SidebarContent = () => {
     const pathname = usePathname();
@@ -93,9 +93,8 @@ const SidebarContent = () => {
                 </Link>
             </div>
 
-            {/* Menu Items */}
             <nav className="space-y-2 p-4">
-                {menuItems.map((item) => {
+                {(mounted && user?.role === "admin" ? adminMenuItems : userMenuItems).map((item) => {
                     const Icon = item.icon;
                     const active = pathname === item.href;
 
@@ -108,7 +107,7 @@ const SidebarContent = () => {
                                 : "hover:bg-default-100 text-foreground"
                                 }`}
                         >
-                            <Icon className="size-5" />
+                            <Icon className="size-5 shrink-0" />
                             <span>{item.label}</span>
                         </Link>
                     );

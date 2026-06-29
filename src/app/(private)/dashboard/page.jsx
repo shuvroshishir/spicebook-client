@@ -14,16 +14,255 @@ import {
   LuSettings,
   LuCrown,
   LuLoader,
-  LuCheck
+  LuCheck,
+  LuUsers,
+  LuTriangleAlert,
+  LuReceipt
 } from 'react-icons/lu';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
+function AdminDashboardView({ user }) {
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalRecipes: 0,
+    totalPremiumMembers: 0,
+    totalReports: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAdminStats = async () => {
+      try {
+        const tokenResult = await authClient.token();
+        const token = tokenResult?.data?.token;
+        if (!token) return;
+
+        const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
+        const response = await fetch(`${serverUrl}/admin/stats`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setStats(data);
+        }
+      } catch (error) {
+        console.error("Error fetching admin stats:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAdminStats();
+  }, []);
+
+  const containerVariants = {
+    hidden: { opacity: 0, y: 15 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, staggerChildren: 0.1 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center">
+        <LuLoader className="size-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <motion.div 
+      className="p-4 sm:p-6 lg:p-8 space-y-8"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      {/* Header section */}
+      <motion.div 
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        variants={itemVariants}
+      >
+        <div>
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">
+            Admin Control Center
+          </h2>
+          <p className="text-muted-foreground mt-1.5 text-sm sm:text-base">
+            Logged in as <span className="font-semibold text-primary">{user?.name} (Administrator)</span>.
+          </p>
+        </div>
+        <div className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-primary/10 border border-primary/20 text-primary text-sm font-extrabold uppercase tracking-wider shadow-sm animate-pulse">
+          System Admin
+        </div>
+      </motion.div>
+
+      {/* Stats Grid */}
+      <motion.div 
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+        variants={itemVariants}
+      >
+        {/* Total Users */}
+        <motion.div 
+          className="bg-card border border-border rounded-3xl p-6 flex flex-col justify-between h-44 relative overflow-hidden transition-all duration-300 hover:shadow-lg dark:hover:shadow-black/20"
+          whileHover={{ y: -4 }}
+        >
+          <div className="flex justify-between items-start">
+            <span className="text-muted-foreground text-sm font-semibold tracking-wide uppercase">
+              Total Users
+            </span>
+            <div className="p-2.5 bg-blue-500/10 rounded-xl text-blue-500">
+              <LuUsers className="size-5" />
+            </div>
+          </div>
+          <div>
+            <span className="text-5xl font-black text-foreground block tracking-tight">
+              {stats.totalUsers}
+            </span>
+            <Link href="/dashboard/manage-users" className="text-xs text-primary font-semibold hover:underline mt-2 inline-block">
+              Manage Users &rarr;
+            </Link>
+          </div>
+        </motion.div>
+
+        {/* Total Recipes */}
+        <motion.div 
+          className="bg-card border border-border rounded-3xl p-6 flex flex-col justify-between h-44 relative overflow-hidden transition-all duration-300 hover:shadow-lg dark:hover:shadow-black/20"
+          whileHover={{ y: -4 }}
+        >
+          <div className="flex justify-between items-start">
+            <span className="text-muted-foreground text-sm font-semibold tracking-wide uppercase">
+              Total Recipes
+            </span>
+            <div className="p-2.5 bg-violet-500/10 rounded-xl text-violet-500">
+              <LuBookOpen className="size-5" />
+            </div>
+          </div>
+          <div>
+            <span className="text-5xl font-black text-foreground block tracking-tight">
+              {stats.totalRecipes}
+            </span>
+            <Link href="/dashboard/manage-recipes" className="text-xs text-primary font-semibold hover:underline mt-2 inline-block">
+              Manage Recipes &rarr;
+            </Link>
+          </div>
+        </motion.div>
+
+        {/* Premium Members */}
+        <motion.div 
+          className="bg-card border border-border rounded-3xl p-6 flex flex-col justify-between h-44 relative overflow-hidden transition-all duration-300 hover:shadow-lg dark:hover:shadow-black/20"
+          whileHover={{ y: -4 }}
+        >
+          <div className="flex justify-between items-start">
+            <span className="text-muted-foreground text-sm font-semibold tracking-wide uppercase">
+              Premium Users
+            </span>
+            <div className="p-2.5 bg-amber-500/10 rounded-xl text-amber-500">
+              <LuCrown className="size-5" />
+            </div>
+          </div>
+          <div>
+            <span className="text-5xl font-black text-foreground block tracking-tight">
+              {stats.totalPremiumMembers}
+            </span>
+            <Link href="/dashboard/transactions" className="text-xs text-primary font-semibold hover:underline mt-2 inline-block">
+              View Transactions &rarr;
+            </Link>
+          </div>
+        </motion.div>
+
+        {/* Total Reports */}
+        <motion.div 
+          className="bg-card border border-border rounded-3xl p-6 flex flex-col justify-between h-44 relative overflow-hidden transition-all duration-300 hover:shadow-lg dark:hover:shadow-black/20"
+          whileHover={{ y: -4 }}
+        >
+          <div className="flex justify-between items-start">
+            <span className="text-muted-foreground text-sm font-semibold tracking-wide uppercase">
+              Active Reports
+            </span>
+            <div className="p-2.5 bg-rose-500/10 rounded-xl text-rose-500">
+              <LuTriangleAlert className="size-5" />
+            </div>
+          </div>
+          <div>
+            <span className="text-5xl font-black text-foreground block tracking-tight text-rose-500">
+              {stats.totalReports}
+            </span>
+            <Link href="/dashboard/reports" className="text-xs text-primary font-semibold hover:underline mt-2 inline-block">
+              Review Reports &rarr;
+            </Link>
+          </div>
+        </motion.div>
+      </motion.div>
+
+      {/* Quick Actions */}
+      <motion.div 
+        className="space-y-4"
+        variants={itemVariants}
+      >
+        <h3 className="text-xl sm:text-2xl font-black text-foreground tracking-tight">
+          Admin Quick Actions
+        </h3>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
+            <Link href="/dashboard/manage-users">
+              <Button className="w-full h-14 bg-foreground text-background font-bold rounded-2xl flex items-center justify-center gap-2 hover:opacity-90 shadow-sm transition-all">
+                <LuUsers className="size-5 text-background animate-pulse" />
+                Manage Users
+              </Button>
+            </Link>
+          </motion.div>
+
+          <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
+            <Link href="/dashboard/manage-recipes">
+              <Button variant="outline" className="w-full h-14 border-border bg-card text-foreground font-semibold rounded-2xl flex items-center justify-center gap-2 hover:bg-default-100 transition-all">
+                <LuBookOpen className="size-5" />
+                Manage Recipes
+              </Button>
+            </Link>
+          </motion.div>
+
+          <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
+            <Link href="/dashboard/reports">
+              <Button variant="outline" className="w-full h-14 border-border bg-card text-foreground font-semibold rounded-2xl flex items-center justify-center gap-2 hover:bg-default-100 transition-all">
+                <LuTriangleAlert className="size-5" />
+                Review Reports
+              </Button>
+            </Link>
+          </motion.div>
+
+          <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
+            <Link href="/dashboard/transactions">
+              <Button variant="outline" className="w-full h-14 border-border bg-card text-foreground font-semibold rounded-2xl flex items-center justify-center gap-2 hover:bg-default-100 transition-all">
+                <LuReceipt className="size-5" />
+                View Transactions
+              </Button>
+            </Link>
+          </motion.div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 export default function DashboardPage() {
   const { data: session } = authClient.useSession();
   const user = session?.user;
   const router = useRouter();
+
+  if (user?.role === "admin") {
+    return <AdminDashboardView user={user} />;
+  }
 
   const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
   const [isUpgradingLoading, setIsUpgradingLoading] = useState(false);

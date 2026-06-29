@@ -9,7 +9,8 @@ import {
   LuTrash2, 
   LuHeart, 
   LuClock,
-  LuLoader
+  LuLoader,
+  LuCrown
 } from "react-icons/lu";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -149,6 +150,14 @@ export default function MyFavoritesPage() {
                     {fav.category}
                   </span>
                 </div>
+                {fav.isPremiumRecipe === true && (
+                  <div className="absolute top-4 right-4 z-10">
+                    <span className="px-3 py-1 rounded-full text-[10px] font-black bg-gradient-to-r from-amber-500 via-amber-600 to-orange-500 text-white shadow-md border border-amber-400/30 flex items-center gap-1 uppercase tracking-wider animate-pulse">
+                      <LuCrown className="size-3 text-white" />
+                      <span>Premium</span>
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Card Content */}

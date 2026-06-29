@@ -11,7 +11,8 @@ import {
   LuTriangleAlert, 
   LuBookOpen, 
   LuClock, 
-  LuUtensils 
+  LuUtensils,
+  LuCrown 
 } from "react-icons/lu";
 import { Button } from "@heroui/react";
 import { authClient } from "@/lib/auth-client";
@@ -175,7 +176,13 @@ function PurchasedRecipesContent() {
               <span className="text-[10px] uppercase tracking-wider font-extrabold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
                 {unlockedRecipe.category}
               </span>
-              <h4 className="font-extrabold text-foreground text-base sm:text-lg truncate mt-1">{unlockedRecipe.recipeName}</h4>
+              <h4 className="font-extrabold text-foreground text-base sm:text-lg truncate mt-1 flex items-center gap-1.5">
+                <span className="truncate">{unlockedRecipe.recipeName}</span>
+                <span className="shrink-0 px-1.5 py-0.5 rounded bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[9px] font-black uppercase tracking-wider flex items-center gap-0.5 shadow-sm border border-amber-400/20">
+                  <LuCrown className="size-2.5 text-white animate-pulse" />
+                  <span>Premium</span>
+                </span>
+              </h4>
               <p className="text-xs text-muted-foreground mt-0.5">By {unlockedRecipe.authorName || "Chef"}</p>
             </div>
           </div>
@@ -241,6 +248,12 @@ function PurchasedRecipesContent() {
                 <div className="absolute top-4 left-4">
                   <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-primary text-white">
                     {item.category}
+                  </span>
+                </div>
+                <div className="absolute top-4 right-4 z-10">
+                  <span className="px-3 py-1 rounded-full text-[10px] font-black bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-md border border-emerald-400/30 flex items-center gap-1 uppercase tracking-wider">
+                    <LuCrown className="size-3 text-white" />
+                    <span>Unlocked</span>
                   </span>
                 </div>
               </div>

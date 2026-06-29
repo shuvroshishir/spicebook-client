@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
-import { LuPlus, LuUpload, LuLoader, LuCrown, LuAlertTriangle, LuCheck } from "react-icons/lu";
+import { LuPlus, LuUpload, LuLoader, LuCrown, LuTriangleAlert, LuCheck } from "react-icons/lu";
 import { Button } from "@heroui/react";
 import { authClient } from "@/lib/auth-client";
 

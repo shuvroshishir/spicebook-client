@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { LuClock, LuChefHat, LuChevronLeft, LuChevronRight, LuCompass } from "react-icons/lu";
+import { LuClock, LuChefHat, LuChevronLeft, LuChevronRight, LuCompass, LuCrown } from "react-icons/lu";
 
 export default function FeaturedRecipes() {
   const [recipes, setRecipes] = useState([]);
@@ -141,6 +141,16 @@ export default function FeaturedRecipes() {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  
+                  {/* Floating Premium Price Badge */}
+                  {recipe.isPremiumRecipe === true && (
+                    <div className="absolute top-4 right-4 z-10">
+                      <span className="px-3 py-1 rounded-full text-[10px] font-black bg-gradient-to-r from-amber-500 via-amber-600 to-orange-500 text-white shadow-md border border-amber-400/30 flex items-center gap-1 uppercase tracking-wider">
+                        <LuCrown className="size-3 text-white animate-pulse" />
+                        <span>Premium • ${recipe.price ? recipe.price.toFixed(2) : "4.99"}</span>
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Card Content */}

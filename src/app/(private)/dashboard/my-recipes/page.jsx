@@ -395,8 +395,8 @@ export default function MyRecipesPage() {
                     </td>
                     <td className="px-6 py-4">
                       {recipe.isPremiumRecipe ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 uppercase tracking-wider">
-                          <LuCrown className="size-3 text-amber-500" />
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-black rounded-full bg-gradient-to-r from-amber-500 via-amber-600 to-orange-500 text-white shadow-sm border border-amber-400/20 uppercase tracking-wider">
+                          <LuCrown className="size-3 text-white animate-pulse" />
                           Premium (${recipe.price?.toFixed(2)})
                         </span>
                       ) : (
@@ -477,8 +477,8 @@ export default function MyRecipesPage() {
                       {recipe.likesCount || 0}
                     </span>
                     {recipe.isPremiumRecipe ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 uppercase tracking-wider">
-                        <LuCrown className="size-3 text-amber-500" />
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-black rounded-full bg-gradient-to-r from-amber-500 via-amber-600 to-orange-500 text-white shadow-sm border border-amber-400/20 uppercase tracking-wider">
+                        <LuCrown className="size-3 text-white animate-pulse" />
                         Premium (${recipe.price?.toFixed(2)})
                       </span>
                     ) : (

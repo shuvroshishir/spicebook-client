@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { LuHeart, LuCompass, LuTrendingUp } from "react-icons/lu";
+import { LuHeart, LuCompass, LuTrendingUp, LuCrown } from "react-icons/lu";
 
 export default function PopularRecipes() {
   const [recipes, setRecipes] = useState([]);
@@ -113,8 +113,14 @@ export default function PopularRecipes() {
 
                     {/* Metadata */}
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-foreground text-base truncate group-hover:text-primary transition-colors duration-200">
-                        {recipe.recipeName}
+                      <h3 className="font-bold text-foreground text-base truncate group-hover:text-primary transition-colors duration-200 flex items-center gap-1.5">
+                        <span className="truncate">{recipe.recipeName}</span>
+                        {recipe.isPremiumRecipe === true && (
+                          <span className="shrink-0 px-1.5 py-0.5 rounded bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[9px] font-black uppercase tracking-wider flex items-center gap-0.5 shadow-sm border border-amber-400/20">
+                            <LuCrown className="size-2.5 text-white animate-pulse" />
+                            <span>Pro</span>
+                          </span>
+                        )}
                       </h3>
                       <p className="text-xs text-muted-foreground mt-0.5 truncate">
                         {recipe.authorName || "Anonymous"} • {recipe.category}

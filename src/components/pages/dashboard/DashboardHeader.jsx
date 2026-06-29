@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -15,12 +16,17 @@ import {
 import { LuLayoutDashboard, LuLogOut } from "react-icons/lu";
 import { authClient } from "@/lib/auth-client";
 import toast from "react-hot-toast";
-import menuItems from "./menuItems";
+import { userMenuItems, adminMenuItems } from "./menuItems";
 
 const DashboardHeader = () => {
     const router = useRouter();
     const { data: session } = authClient.useSession();
     const user = session?.user;
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+    const items = mounted && user?.role === "admin" ? adminMenuItems : userMenuItems;
 
     const handleSignout = async () => {
         await authClient.signOut({
@@ -81,7 +87,7 @@ const DashboardHeader = () => {
                                 {/* Menu */}
                                 <Drawer.Body>
                                     <nav className="space-y-2">
-                                        {menuItems.map((item) => (
+                                        {items.map((item) => (
                                             <Link
                                                 key={item.href}
                                                 href={item.href}
