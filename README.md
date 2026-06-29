@@ -1,6 +1,11 @@
+<img width="1672" height="941" alt="spice-book" src="https://github.com/user-attachments/assets/68c7b151-c2a7-4690-914f-e95fbb4bd9d4" />
+
+
 # SpiceBook — Recipe Sharing & Culinary Inspiration Platform (Client)
 
 SpiceBook is a modern, responsive, and full-featured recipe-sharing platform where food enthusiasts can discover, create, purchase, and bookmark recipes. Built using **Next.js (App Router)** and styled with a premium dark-themed layout, SpiceBook delivers a top-tier user experience with smooth animations, responsive cards, and secure user states.
+
+🌐 Live Demo: https://spicebook.vercel.app
 
 ---
 
