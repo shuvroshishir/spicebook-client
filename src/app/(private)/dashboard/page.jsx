@@ -265,7 +265,7 @@ export default function DashboardPage() {
 
   const [stats, setStats] = useState({
     publishedRecipes: 0,
-    savedFavorites: 2,
+    savedFavorites: 0,
     totalEngagement: 0
   });
 
@@ -274,20 +274,44 @@ export default function DashboardPage() {
       try {
         const tokenResult = await authClient.token();
         const token = tokenResult?.data?.token;
+        if (!token) return;
+
+        // Fetch my listings
         const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000'}/my-listings`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
         });
+        
+        let publishedCount = 0;
+        let likesSum = 0;
         if (response.ok) {
           const data = await response.json();
-          setStats(prev => ({
-            ...prev,
-            publishedRecipes: data.length || 0
-          }));
+          publishedCount = data.length || 0;
+          likesSum = data.reduce((sum, recipe) => sum + (recipe.likesCount || 0), 0);
         }
+
+        // Fetch my favorites
+        const favResponse = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000'}/recipes/favorites`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        let favCount = 0;
+        if (favResponse.ok) {
+          const favData = await favResponse.json();
+          favCount = favData.length || 0;
+        }
+
+        setStats({
+          publishedRecipes: publishedCount,
+          savedFavorites: favCount,
+          totalEngagement: likesSum
+        });
+
       } catch (error) {
-        console.log("Could not fetch database stats, using mock values:", error);
+        console.log("Could not fetch database stats:", error);
       }
     };
 
